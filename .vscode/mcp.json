@@ -1,0 +1,22 @@
+{
+  "servers": {
+    "figma": {
+      "type": "http",
+      "url": "https://mcp.figma.com/mcp"
+    },
+    "supabase": {
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=euqzmsqpvfnadhpvwznu&features=database,docs,development,debugging"
+    },
+    "mobile-mcp": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@mobilenext/mobile-mcp@latest"
+      ]
+    }
+  }
+}
