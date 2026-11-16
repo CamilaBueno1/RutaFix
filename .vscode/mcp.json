@@ -1,14 +1,10 @@
 {
   "servers": {
-    "figma": {
-      "type": "http",
-      "url": "https://mcp.figma.com/mcp"
-    },
     "supabase": {
       "type": "http",
-      "url": "https://mcp.supabase.com/mcp?project_ref=euqzmsqpvfnadhpvwznu&features=database,docs,development,debugging"
+      "url": "https://mcp.supabase.com/mcp?project_ref=gijvveguckudngasyxhe&features=database,docs"
     },
-    "mobile-mcp": {
+    "mobile": {
       "type": "stdio",
       "command": "cmd",
       "args": [
@@ -17,6 +13,10 @@
         "-y",
         "@mobilenext/mobile-mcp@latest"
       ]
+    },
+    "penpot": {
+      "type": "http",
+      "url": "http://localhost:4401/mcp"
     }
   }
 }

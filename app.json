@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Cuida lo que te mueve",
+    "name": "Rodaje",
     "slug": "cuida-lo-que-te-mueve",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "deber7",
+    "scheme": "rodaje",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"
