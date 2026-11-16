@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
@@ -12,8 +11,10 @@ import { useAuth } from '@/context/AuthProvider';
 import { EntradaTexto } from '@/components/ui/EntradaTexto';
 import { Boton } from '@/components/ui/Boton';
 import { BotonGoogle } from '@/components/ui/BotonGoogle';
+import { Pantalla } from '@/components/ui/Pantalla';
+import { Texto as Text } from '@/components/ui/Texto';
 import { iniciarSesionConGoogle } from '@/services/googleAuth.service';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -58,37 +59,55 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      className="flex-1 bg-slate-100"
-    >
-      <ScrollView
-        contentContainerClassName="flex-grow justify-center p-6"
-        keyboardShouldPersistTaps="handled"
+    <Pantalla className="bg-ruta-sage-dark">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        className="flex-1"
       >
-        <View className="items-center mb-8">
-          <View className="w-20 h-20 rounded-full bg-blue-50 border border-blue-200 justify-center items-center mb-4">
-            <Ionicons name="speedometer-outline" size={44} color="#2563EB" />
+      <ScrollView
+        contentContainerClassName="flex-grow"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="bg-ruta-sage-dark px-5 pb-12 pt-5">
+          <View className="mb-9 flex-row items-center gap-3">
+            <View className="h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/10">
+              <MaterialCommunityIcons name="map-marker-path" size={27} color="#FFFFFF" />
+            </View>
+            <View className="flex-row items-baseline">
+              <Text className="text-[27px] font-extrabold tracking-tight text-white">RutaFix</Text>
+            </View>
           </View>
-          <Text className="text-2xl font-extrabold text-slate-900 text-center">
-            Cuida lo que te mueve
+          <Text className="text-[27px] font-bold leading-9 text-white">
+            Tu vehículo, siempre en buenas manos.
           </Text>
-          <Text className="text-sm text-slate-500 text-center mt-1.5 max-w-[280px]">
-            Control inteligente de mantenimiento para tus vehículos
+          <Text className="mt-2 text-sm leading-6 text-white/75">
+            Gestiona el mantenimiento de tu vehículo y mantén cada viaje en el camino.
           </Text>
         </View>
 
-        <View className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80">
-          <Text className="text-xl font-bold text-slate-800 mb-5">
-            Iniciar Sesión
+        <View className="-mt-7 flex-1 rounded-t-[30px] bg-ruta-surface px-5 pb-8 pt-7">
+          <Text className="text-[22px] font-bold text-ruta-ink">Bienvenido a RutaFix</Text>
+          <Text className="mb-5 mt-1 text-xs leading-5 text-ruta-muted">
+            Inicia sesión para continuar
           </Text>
 
           {errorMessage ? (
-            <View className="flex-row items-center gap-2 bg-red-50 border border-red-200 p-3 rounded-xl mb-4">
-              <Ionicons name="alert-circle-outline" size={18} color="#EF4444" />
-              <Text className="text-red-700 text-xs flex-1 font-medium">{errorMessage}</Text>
+            <View className="mb-4 flex-row items-center gap-2 rounded-xl border border-ruta-clay/30 bg-ruta-clay-soft p-3.5">
+              <Ionicons name="alert-circle-outline" size={19} color="#984629" />
+              <Text className="flex-1 text-xs font-medium text-ruta-clay-dark">{errorMessage}</Text>
             </View>
           ) : null}
+
+          <BotonGoogle onPress={handleGoogleLogin} cargando={loading} />
+
+          <View className="my-5 flex-row items-center">
+            <View className="h-px flex-1 bg-ruta-line" />
+            <Text className="mx-3 text-xs font-medium text-ruta-muted">
+              O continúa con tu correo
+            </Text>
+            <View className="h-px flex-1 bg-ruta-line" />
+          </View>
 
           <EntradaTexto
             etiqueta="Correo electrónico"
@@ -98,6 +117,7 @@ export default function LoginScreen() {
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
+            icono="mail-outline"
           />
 
           <EntradaTexto
@@ -106,30 +126,29 @@ export default function LoginScreen() {
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            icono="lock-closed-outline"
           />
 
           <Boton
-            titulo="Ingresar a la app"
+            titulo="Iniciar sesión"
             onPress={handleLogin}
             cargando={loading}
-            clasePersonalizada="mt-2"
+            icono="arrow-forward"
+            clasePersonalizada="mt-1"
           />
-
-          <View className="my-5 flex-row items-center">
-            <View className="h-px flex-1 bg-slate-200" />
-            <Text className="mx-3 text-xs font-medium text-slate-400">O CONTINÚA CON</Text>
-            <View className="h-px flex-1 bg-slate-200" />
-          </View>
-          <BotonGoogle onPress={handleGoogleLogin} cargando={loading} />
-
-          <View className="flex-row justify-center items-center mt-5">
-            <Text className="text-slate-500 text-sm">¿Aún no tienes cuenta? </Text>
-            <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-              <Text className="text-blue-600 font-bold text-sm">Regístrate gratis</Text>
+          <View className="mt-6 flex-row items-center justify-center">
+            <Text className="text-sm text-ruta-muted">¿No tienes una cuenta? </Text>
+            <TouchableOpacity
+              accessibilityRole="link"
+              onPress={() => router.push('/(auth)/register')}
+            >
+              <Text className="text-sm font-bold text-ruta-sage-dark">Regístrate</Text>
             </TouchableOpacity>
           </View>
+
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </Pantalla>
   );
 }
