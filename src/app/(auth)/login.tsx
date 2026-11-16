@@ -7,6 +7,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Image } from 'expo-image';
 import { useAuth } from '@/context/AuthProvider';
 import { EntradaTexto } from '@/components/ui/EntradaTexto';
 import { Boton } from '@/components/ui/Boton';
@@ -84,6 +85,14 @@ export default function LoginScreen() {
           <Text className="mt-2 text-sm leading-6 text-white/75">
             Gestiona el mantenimiento de tu vehículo y mantén cada viaje en el camino.
           </Text>
+          <View className="mt-5 h-[178px] overflow-hidden rounded-[22px] bg-ruta-surface">
+            <Image
+              source={require('../../../assets/images/hero.png')}
+              contentFit="contain"
+              transition={180}
+              className="h-full w-full"
+            />
+          </View>
         </View>
 
         <View className="-mt-7 flex-1 rounded-t-[30px] bg-ruta-surface px-5 pb-8 pt-7">
