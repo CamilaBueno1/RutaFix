@@ -187,6 +187,7 @@ export default function VehicleDetailScreen() {
             : String(vehicle.current_km ?? ''),
         vehicle_name: vehicle.name,
         vehicle_label: [vehicle.brand, vehicle.model, vehicle.year].filter(Boolean).join(' '),
+        vehicle_plate: vehicle.plate ?? '',
         vehicle_type: vehicle.type,
       },
     });
@@ -657,6 +658,7 @@ export default function VehicleDetailScreen() {
                         vehicle_label: [vehicle.brand, vehicle.model, vehicle.year]
                           .filter(Boolean)
                           .join(' '),
+                        vehicle_plate: vehicle.plate ?? '',
                         vehicle_type: vehicle.type,
                       },
                     })

@@ -56,6 +56,7 @@ export default function PanelScreen() {
         vehicle_label: [vehiculo.brand, vehiculo.model, vehiculo.year]
           .filter(Boolean)
           .join(' · '),
+        vehicle_plate: vehiculo.plate ?? '',
         vehicle_type: vehiculo.type,
       },
     });
