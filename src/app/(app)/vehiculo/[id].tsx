@@ -10,11 +10,13 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import {
   obtenerVehiculoPorId,
   eliminarVehiculo,
   actualizarVehiculo,
+  TIPOS_VEHICULOS,
   type Vehiculo,
 } from '@/services/vehiculos.service';
 import { useMantenimiento } from '@/hooks/useMantenimiento';
@@ -28,7 +30,6 @@ import {
   COLORES_TIPO_VEHICULO,
   ICONOS_TIPO_VEHICULO,
 } from '@/components/vehiculos/TarjetaVehiculo';
-import { FondoClaymorphism } from '@/components/ui/FondoClaymorphism';
 
 export default function VehicleDetailScreen() {
   const router = useRouter();
@@ -193,23 +194,25 @@ export default function VehicleDetailScreen() {
 
   if (loadingVehicle && !vehicle) {
     return (
-      <Pantalla className="items-center justify-center bg-[#EAF2FB]">
-        <FondoClaymorphism />
+      <Pantalla className="items-center justify-center bg-[#F8F9FF]">
         <ActivityIndicator size="large" color="#2563EB" />
-        <Text className="mt-3 text-sm text-ruta-blue-muted">Cargando información del vehículo...</Text>
+        <Text className="mt-3 text-sm text-[#45464D]">
+          Cargando información del vehículo...
+        </Text>
       </Pantalla>
     );
   }
 
   if (!vehicle) {
     return (
-      <Pantalla className="items-center justify-center bg-[#EAF2FB] px-6">
-        <FondoClaymorphism />
-        <View className="w-full items-center rounded-[26px] border border-ruta-blue-line bg-white p-7 shadow-lg shadow-ruta-navy/5">
+      <Pantalla className="items-center justify-center bg-[#F8F9FF] px-6">
+        <View className="w-full items-center rounded-[26px] border border-[#E2E8F0] bg-white p-7 shadow-lg shadow-[#0B1C30]/5">
           <Ionicons name="alert-circle-outline" size={40} color="#2563EB" />
-          <Text className="mt-3 text-base font-bold text-ruta-navy">No se encontró el vehículo.</Text>
+          <Text className="mt-3 text-base font-bold text-[#0B1C30]">
+            No se encontró el vehículo.
+          </Text>
           <TouchableOpacity
-            className="mt-5 rounded-2xl bg-ruta-navy-deep px-6 py-3"
+            className="mt-5 rounded-2xl bg-[#2563EB] px-6 py-3"
             onPress={() => router.back()}
           >
             <Text className="font-semibold text-white">Volver</Text>
@@ -220,53 +223,71 @@ export default function VehicleDetailScreen() {
   }
 
   const tipoColor = COLORES_TIPO_VEHICULO[vehicle.type];
+  const tipoEtiqueta =
+    TIPOS_VEHICULOS.find((tipo) => tipo.valor === vehicle.type)?.etiqueta ?? vehicle.type;
+  const kilometrajeActual =
+    vehicle.type === 'bicycle' && (vehicle.current_km == null || vehicle.current_km === 0)
+      ? null
+      : vehicle.current_km;
+  const proximoMantenimiento = registros.find(
+    (registro) => registro.next_due_km != null || registro.next_due_date != null
+  );
+  const kilometrosRestantes =
+    kilometrajeActual != null && proximoMantenimiento?.next_due_km != null
+      ? proximoMantenimiento.next_due_km - kilometrajeActual
+      : null;
+  const resumenProximo =
+    kilometrosRestantes != null
+      ? kilometrosRestantes > 0
+        ? `${kilometrosRestantes.toLocaleString()} km`
+        : kilometrosRestantes === 0
+          ? 'Toca ahora'
+          : `Vencido ${Math.abs(kilometrosRestantes).toLocaleString()} km`
+      : proximoMantenimiento?.next_due_km != null
+        ? `${proximoMantenimiento.next_due_km.toLocaleString()} km`
+        : proximoMantenimiento?.next_due_date ?? 'Sin programar';
+  const intervaloServicio =
+    proximoMantenimiento?.next_due_km != null && proximoMantenimiento.odometer_km != null
+      ? proximoMantenimiento.next_due_km - proximoMantenimiento.odometer_km
+      : null;
+  const avanceServicio =
+    intervaloServicio != null &&
+    intervaloServicio > 0 &&
+    kilometrajeActual != null &&
+    proximoMantenimiento?.odometer_km != null
+      ? Math.min(
+          100,
+          Math.max(
+            0,
+            ((kilometrajeActual - proximoMantenimiento.odometer_km) / intervaloServicio) * 100
+          )
+        )
+      : null;
 
   return (
-    <Pantalla className="bg-[#EAF2FB]">
-      <FondoClaymorphism />
+    <Pantalla className="bg-[#F8F9FF]">
       <View className="flex-row items-center justify-between px-5 pb-3 pt-2">
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel="Volver"
-          className="h-11 w-11 items-center justify-center rounded-xl border border-ruta-blue-line bg-white shadow-sm"
+          className="h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm shadow-[#0B1C30]/5"
           onPress={() => router.back()}
           hitSlop={8}
         >
-          <Ionicons name="arrow-back" size={21} color="#192841" />
+          <Ionicons name="arrow-back" size={23} color="#0B1C30" />
         </TouchableOpacity>
-        <View className="items-center">
-          <Text className="text-[10px] font-extrabold uppercase tracking-[1.5px] text-ruta-blue">
-            Detalle del vehículo
-          </Text>
-          <Text className="mt-0.5 max-w-44 text-xs font-medium text-ruta-blue-muted" numberOfLines={1}>
-            {vehicle.name}
-          </Text>
-        </View>
-        <View className="flex-row gap-2">
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel="Editar vehículo"
-            className="h-11 w-11 items-center justify-center rounded-xl border border-ruta-blue-line bg-white shadow-sm"
-            onPress={() =>
-              router.push({
-                pathname: '/(app)/vehiculo/nuevo',
-                params: { id: vehicle.id },
-              })
-            }
-            hitSlop={8}
-          >
-            <Ionicons name="create-outline" size={20} color="#2563EB" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel="Eliminar vehículo"
-            className="h-11 w-11 items-center justify-center rounded-xl border border-ruta-blue-line bg-white shadow-sm"
-            onPress={handleDeleteVehicle}
-            hitSlop={8}
-          >
-            <Ionicons name="trash-outline" size={19} color="#B45309" />
-          </TouchableOpacity>
-        </View>
+        <Text className="flex-1 text-center text-lg font-bold text-[#0B1C30]">
+          Detalle de vehículo
+        </Text>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="Eliminar vehículo"
+          className="h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm shadow-[#0B1C30]/5"
+          onPress={handleDeleteVehicle}
+          hitSlop={8}
+        >
+          <Ionicons name="trash-outline" size={20} color="#45464D" />
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -281,147 +302,311 @@ export default function VehicleDetailScreen() {
           />
         }
       >
-        <View className="relative mb-4 overflow-hidden rounded-[28px] border border-ruta-blue-line bg-[#EDF5FC] p-5 shadow-lg shadow-ruta-navy/10">
-          <View className="absolute -right-10 -top-10 h-36 w-36 rounded-full border-[20px] border-[#DBEAFE]" />
-          <View className="absolute right-10 top-24 h-14 w-14 rounded-full bg-[#FEF3C7]" />
-          <View className="relative">
-            <View className="flex-row items-center gap-4">
-              <View
-                className="h-16 w-16 items-center justify-center rounded-2xl border border-ruta-blue-line bg-white shadow-sm"
-                style={{ backgroundColor: tipoColor.fondo }}
-              >
+        <View className="mb-5 overflow-hidden rounded-[26px] border border-[#E8ECF5] bg-white p-4 shadow-sm shadow-[#0B1C30]/5">
+          <View className="flex-row items-center gap-3">
+            <View
+              className="h-14 w-14 items-center justify-center rounded-2xl bg-[#EFF6FF]"
+              style={{ backgroundColor: tipoColor.fondo }}
+            >
+              <MaterialCommunityIcons
+                name={ICONOS_TIPO_VEHICULO[vehicle.type]}
+                size={30}
+                color={tipoColor.icono}
+              />
+            </View>
+            <View className="flex-1">
+              <View className="flex-row items-center gap-2">
+                <Text className="flex-1 text-[22px] font-extrabold text-[#0B1C30]" numberOfLines={1}>
+                  {vehicle.name}
+                </Text>
+                {vehicle.year ? (
+                  <View className="rounded-full bg-[#EAF1FF] px-2.5 py-1">
+                    <Text className="text-xs font-bold text-[#2563EB]">{vehicle.year}</Text>
+                  </View>
+                ) : null}
+              </View>
+              <Text className="mt-1 text-sm text-[#45464D]" numberOfLines={1}>
+                {[vehicle.brand, vehicle.model].filter(Boolean).join(' • ') || tipoEtiqueta}
+              </Text>
+            </View>
+          </View>
+
+          <View className="relative mt-4 h-[190px] overflow-hidden rounded-[22px] bg-[#F0F5FF]">
+            {vehicle.type === 'car' ? (
+              <Image
+                source={require('../../../../assets/images/hero.png')}
+                style={{ height: '100%', width: '100%' }}
+                contentFit="contain"
+              />
+            ) : (
+              <View className="h-full w-full items-center justify-center">
+                <View className="absolute h-36 w-36 rounded-full border-[18px] border-white/70" />
                 <MaterialCommunityIcons
                   name={ICONOS_TIPO_VEHICULO[vehicle.type]}
-                  size={32}
+                  size={94}
                   color={tipoColor.icono}
                 />
               </View>
-              <View className="flex-1">
-                <Text className="text-[10px] font-extrabold uppercase tracking-[1.5px] text-ruta-blue">
-                  Mi vehículo
+            )}
+            <View className="absolute bottom-3 left-3 right-3 flex-row items-center justify-between">
+              <View className="rounded-xl border border-[#E2E8F0] bg-white px-3 py-2 shadow-sm">
+                <Text className="text-xs font-extrabold tracking-wider text-[#131B2E]">
+                  {vehicle.plate ? vehicle.plate.toUpperCase() : tipoEtiqueta}
                 </Text>
-                <Text className="mt-0.5 text-[25px] font-extrabold leading-7 text-ruta-navy-deep">
-                  {vehicle.name}
-                </Text>
-                <Text className="mt-1 text-xs text-ruta-blue-muted" numberOfLines={1}>
-                  {[vehicle.brand, vehicle.model, vehicle.year].filter(Boolean).join(' · ') ||
-                    'Sin detalles adicionales'}
-                </Text>
+              </View>
+              <View className="flex-row items-center gap-1.5 rounded-xl bg-[#ECFDF5] px-3 py-2">
+                <View className="h-2 w-2 rounded-full bg-[#10B981]" />
+                <Text className="text-xs font-bold text-[#065F46]">En tu garaje</Text>
               </View>
             </View>
+          </View>
 
-            <View className="mt-5 flex-row items-center justify-between rounded-2xl border border-ruta-blue-line bg-white/90 px-4 py-3">
-              <View>
-                <Text className="text-[10px] font-bold uppercase tracking-wider text-ruta-blue-muted">
-                  {vehicle.type === 'bicycle' ? 'Distancia acumulada' : 'Odómetro actual'}
-                </Text>
-                <Text className="mt-0.5 text-lg font-extrabold text-ruta-navy-deep">
-                  {vehicle.type === 'bicycle' &&
-                  (vehicle.current_km == null || vehicle.current_km === 0)
+          <View className="mt-4 flex-row gap-3">
+            <TouchableOpacity
+              accessibilityRole="button"
+              className="h-[54px] flex-1 flex-row items-center justify-center gap-2 rounded-2xl border border-[#E8ECF5] bg-white"
+              onPress={() =>
+                router.push({
+                  pathname: '/(app)/vehiculo/nuevo',
+                  params: { id: vehicle.id },
+                })
+              }
+            >
+              <Ionicons name="create-outline" size={19} color="#2563EB" />
+              <Text className="text-sm font-bold text-[#131B2E]">Editar datos</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              className="h-[54px] flex-1 flex-row items-center justify-center gap-2 rounded-2xl border border-[#E8ECF5] bg-white"
+              onPress={irANuevoServicio}
+            >
+              <Ionicons name="construct-outline" size={19} color="#2563EB" />
+              <Text className="text-sm font-bold text-[#131B2E]">Registrar servicio</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View className="mb-6 flex-row items-center justify-between rounded-[24px] border border-[#E8ECF5] bg-white p-4 shadow-sm shadow-[#0B1C30]/5">
+          <View className="min-w-0 flex-1 flex-row items-center gap-3">
+            <View className="h-14 w-14 items-center justify-center rounded-2xl bg-[#EFF6FF]">
+              <Ionicons name="speedometer-outline" size={29} color="#2563EB" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-xs font-semibold text-[#45464D]">
+                {vehicle.type === 'bicycle' ? 'Distancia acumulada' : 'Kilometraje actual'}
+              </Text>
+              <View className="flex-row items-baseline gap-1">
+                <Text
+                  className="text-[23px] font-extrabold text-[#0B1C30]"
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                >
+                  {kilometrajeActual == null
                     ? 'Sin registrar'
-                    : vehicle.current_km == null
-                      ? 'Sin registrar'
-                      : `${vehicle.current_km.toLocaleString()} km`}
+                    : kilometrajeActual.toLocaleString()}
+                </Text>
+                {kilometrajeActual != null ? (
+                  <Text className="text-xs font-bold uppercase text-[#45464D]">km</Text>
+                ) : null}
+              </View>
+            </View>
+          </View>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={
+              vehicle.type === 'bicycle' ? 'Actualizar distancia' : 'Actualizar kilometraje'
+            }
+            className="ml-2 min-h-[56px] flex-row items-center justify-center gap-2 rounded-[18px] bg-[#131B2E] px-3.5"
+            onPress={handleUpdateKm}
+          >
+            <Ionicons name="add-circle-outline" size={20} color="#F59E0B" />
+            <Text className="text-xs font-extrabold text-white">
+              {vehicle.type === 'bicycle' ? 'Act. dist.' : 'Act. km'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View className="mb-6">
+          <View className="mb-3 flex-row items-center justify-between">
+            <View className="flex-1 flex-row items-center gap-2.5">
+              <View className="h-10 w-10 items-center justify-center rounded-2xl bg-[#EAF1FF]">
+                <Ionicons name="shield-checkmark-outline" size={22} color="#2563EB" />
+              </View>
+              <Text className="flex-1 text-base font-extrabold text-[#0B1C30]">
+                Salud de mantenimiento
+              </Text>
+            </View>
+            <InsigniaEstado resultado={estadoServicio} />
+          </View>
+
+          <View className="flex-row gap-2.5">
+            <View className="min-w-0 flex-1 rounded-[20px] border border-[#E8ECF5] bg-white p-3 shadow-sm shadow-[#0B1C30]/5">
+              <View className="mb-2 h-8 w-8 items-center justify-center rounded-xl bg-[#FFF7E8]">
+                <Ionicons name="calendar-outline" size={17} color="#F59E0B" />
+              </View>
+              <Text className="text-[10px] font-semibold text-[#45464D]">Próximo</Text>
+              <Text
+                className="mt-1 text-[13px] font-extrabold text-[#0B1C30]"
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
+                {resumenProximo}
+              </Text>
+            </View>
+            <View className="min-w-0 flex-1 rounded-[20px] border border-[#E8ECF5] bg-white p-3 shadow-sm shadow-[#0B1C30]/5">
+              <View className="mb-2 h-8 w-8 items-center justify-center rounded-xl bg-[#EAF1FF]">
+                <Ionicons name="construct-outline" size={17} color="#2563EB" />
+              </View>
+              <Text className="text-[10px] font-semibold text-[#45464D]">Servicios</Text>
+              <Text className="mt-1 text-[15px] font-extrabold text-[#0B1C30]">
+                {registros.length}
+              </Text>
+            </View>
+            <View className="min-w-0 flex-1 rounded-[20px] border border-[#E8ECF5] bg-white p-3 shadow-sm shadow-[#0B1C30]/5">
+              <View className="mb-2 h-8 w-8 items-center justify-center rounded-xl bg-[#ECFDF5]">
+                <Ionicons name="cash-outline" size={17} color="#10B981" />
+              </View>
+              <Text className="text-[10px] font-semibold text-[#45464D]">Gasto total</Text>
+              <Text
+                className="mt-1 text-[13px] font-extrabold text-[#0B1C30]"
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
+                ${costoTotal.toFixed(2)}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <View className="mb-6 rounded-[26px] bg-[#0B1C30] p-5 shadow-lg shadow-[#0B1C30]/15">
+          <View className="mb-4 flex-row items-center justify-between">
+            <View className="flex-row items-center gap-2 rounded-full bg-[#FFF7E8] px-3 py-1.5">
+              <View className="h-2 w-2 rounded-full bg-[#F59E0B]" />
+              <Text className="text-[11px] font-extrabold text-[#B45309]">
+                {proximoMantenimiento ? 'Servicio programado' : 'Plan de mantenimiento'}
+              </Text>
+            </View>
+            <Text
+              className="text-xs font-extrabold text-[#FBBF24]"
+              numberOfLines={1}
+            >
+              {estadoServicio.etiqueta}
+            </Text>
+          </View>
+
+          <Text className="text-[21px] font-extrabold leading-7 text-white">
+            {proximoMantenimiento?.service_type ?? 'Aún no hay un servicio programado'}
+          </Text>
+          <Text className="mt-2 text-sm leading-5 text-[#BEC6E0]">
+            {proximoMantenimiento?.notes ||
+              estadoServicio.motivo ||
+              'Registra el próximo mantenimiento para llevar un seguimiento.'}
+          </Text>
+
+          {proximoMantenimiento ? (
+            <View className="mt-5">
+              <View className="mb-2 flex-row items-center justify-between">
+                <Text className="text-xs font-semibold text-[#BEC6E0]">
+                  {kilometrosRestantes == null
+                    ? proximoMantenimiento.next_due_km != null
+                      ? 'Próximo límite'
+                      : 'Fecha del próximo servicio'
+                    : kilometrosRestantes === 0
+                      ? 'Servicio requerido'
+                    : kilometrosRestantes > 0
+                      ? 'Distancia restante'
+                      : 'Distancia vencida'}
+                </Text>
+                <Text className="text-xs font-extrabold text-[#FBBF24]">
+                  {kilometrosRestantes == null
+                    ? proximoMantenimiento.next_due_km != null
+                      ? `${proximoMantenimiento.next_due_km.toLocaleString()} km`
+                      : proximoMantenimiento.next_due_date ?? 'Sin fecha'
+                    : kilometrosRestantes === 0
+                      ? 'Límite alcanzado'
+                    : `${Math.abs(kilometrosRestantes).toLocaleString()} km`}
                 </Text>
               </View>
-              {vehicle.plate ? (
-                <View className="rounded-xl border border-ruta-blue-line bg-[#F8FAFC] px-3 py-1.5">
-                  <Text className="text-xs font-bold tracking-wider text-ruta-blue-muted">
-                    {vehicle.plate.toUpperCase()}
-                  </Text>
+              {avanceServicio != null ? (
+                <View className="h-2 overflow-hidden rounded-full bg-[#26364D]">
+                  <View
+                    className="h-full rounded-full bg-[#2563EB]"
+                    style={{ width: `${avanceServicio}%` }}
+                  />
                 </View>
               ) : null}
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityLabel={
-                  vehicle.type === 'bicycle'
-                    ? 'Actualizar distancia acumulada'
-                    : 'Actualizar kilometraje'
-                }
-                className="flex-row items-center gap-1.5 rounded-xl bg-ruta-blue-soft px-3 py-2"
-                onPress={handleUpdateKm}
-              >
-                {vehicle.type === 'bicycle' ? (
-                  <MaterialCommunityIcons name="bicycle" size={17} color="#2563EB" />
-                ) : (
-                  <Ionicons name="speedometer-outline" size={16} color="#2563EB" />
-                )}
-                <Text className="text-xs font-bold text-ruta-blue">Actualizar</Text>
-              </TouchableOpacity>
             </View>
-          </View>
-        </View>
+          ) : null}
 
-        <View className="mb-4 rounded-[24px] border border-ruta-blue-line bg-white p-5 shadow-md shadow-ruta-navy/5">
-          <View className="mb-3 flex-row items-center gap-3">
-            <View className="h-10 w-10 items-center justify-center rounded-2xl bg-ruta-blue-soft">
-              <Ionicons name="shield-checkmark-outline" size={20} color="#2563EB" />
-            </View>
-            <Text className="flex-1 text-base font-extrabold text-ruta-navy-deep">
-              Estado del próximo servicio
-            </Text>
-          </View>
-          <InsigniaEstado resultado={estadoServicio} mostrarMotivo />
-        </View>
-
-        <View className="mb-4 flex-row gap-3">
-          <View className="flex-1 rounded-[22px] border border-ruta-blue-line bg-white p-4 shadow-md shadow-ruta-navy/5">
-            <View className="mb-2 h-9 w-9 items-center justify-center rounded-xl bg-ruta-blue-soft">
-              <Ionicons name="construct-outline" size={18} color="#2563EB" />
-            </View>
-            <Text className="text-[11px] font-semibold text-ruta-blue-muted">Servicios</Text>
-            <Text className="mt-0.5 text-xl font-extrabold text-ruta-navy-deep">{registros.length}</Text>
-          </View>
-          <View className="flex-1 rounded-[22px] border border-ruta-blue-line bg-white p-4 shadow-md shadow-ruta-navy/5">
-            <View className="mb-2 h-9 w-9 items-center justify-center rounded-xl bg-ruta-amber-soft">
-              <Ionicons name="cash-outline" size={18} color="#B45309" />
-            </View>
-            <Text className="text-[11px] font-semibold text-ruta-blue-muted">Gasto acumulado</Text>
-            <Text className="mt-0.5 text-xl font-extrabold text-ruta-clay-dark">
-              ${costoTotal.toFixed(2)}
-            </Text>
+          <View className="mt-5 gap-2.5">
+            <TouchableOpacity
+              accessibilityRole="button"
+              className="min-h-[54px] flex-row items-center justify-center gap-2 rounded-2xl bg-[#2563EB] px-4"
+              onPress={irANuevoServicio}
+            >
+              <Ionicons name="checkbox-outline" size={20} color="#FFFFFF" />
+              <Text className="text-sm font-bold text-white">Registrar mantenimiento</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              className="min-h-[54px] flex-row items-center justify-center gap-2 rounded-2xl bg-[#1B2A42] px-4"
+              onPress={handleUpdateKm}
+            >
+              <Ionicons name="speedometer-outline" size={19} color="#BEC6E0" />
+              <Text className="text-sm font-bold text-[#D3E4FE]">
+                {vehicle.type === 'bicycle' ? 'Actualizar distancia' : 'Actualizar kilometraje'}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
 
         <View className="mb-3 flex-row items-center justify-between">
-          <Text className="text-base font-extrabold text-ruta-navy-deep">Historial de mantenimientos</Text>
+          <View className="flex-1">
+            <Text className="text-lg font-extrabold text-[#0B1C30]">
+              Gestión técnica &amp; bitácora
+            </Text>
+            <Text className="mt-0.5 text-xs text-[#45464D]">
+              Historial de mantenimientos
+            </Text>
+          </View>
           <TouchableOpacity
-            className="flex-row items-center gap-1.5 rounded-xl bg-ruta-navy-deep px-3.5 py-2 shadow-sm shadow-ruta-navy/10"
+            accessibilityRole="button"
+            className="h-11 w-11 items-center justify-center rounded-2xl bg-white shadow-sm shadow-[#0B1C30]/5"
+            accessibilityLabel="Agregar servicio"
             onPress={irANuevoServicio}
           >
-            <Ionicons name="add" size={16} color="#FFFFFF" />
-            <Text className="text-xs font-bold text-white">Servicio</Text>
+            <Ionicons name="add" size={23} color="#2563EB" />
           </TouchableOpacity>
         </View>
 
         {registros.length === 0 ? (
-          <View className="items-center rounded-[24px] border border-ruta-blue-line bg-white p-8 shadow-md shadow-ruta-navy/5">
-            <View className="mb-4 h-16 w-16 items-center justify-center rounded-2xl bg-ruta-blue-soft">
+          <View className="items-center rounded-[24px] border border-[#E8ECF5] bg-white p-8 shadow-md shadow-[#0B1C30]/5">
+            <View className="mb-4 h-16 w-16 items-center justify-center rounded-2xl bg-[#EFF6FF]">
               <Ionicons name="construct-outline" size={30} color="#2563EB" />
             </View>
-            <Text className="text-base font-bold text-ruta-navy-deep">Sin registros aún</Text>
-            <Text className="mb-5 mt-1.5 max-w-64 text-center text-xs leading-5 text-ruta-blue-muted">
+            <Text className="text-base font-bold text-[#0B1C30]">Sin registros aún</Text>
+            <Text className="mb-5 mt-1.5 max-w-64 text-center text-xs leading-5 text-[#45464D]">
               {vehicle.type === 'bicycle'
                 ? 'Lleva el control de cadena, frenos, neumáticos o ajustes de tu bicicleta.'
                 : 'Lleva el control de aceite, frenos, neumáticos o revisiones de este vehículo.'}
             </Text>
             <TouchableOpacity
-              className="rounded-xl border border-ruta-blue-line bg-ruta-blue-soft px-4 py-2.5"
+              className="rounded-xl border border-[#D3E4FE] bg-[#EFF6FF] px-4 py-2.5"
               onPress={irANuevoServicio}
             >
-              <Text className="text-xs font-bold text-ruta-blue">Registrar primer servicio</Text>
+              <Text className="text-xs font-bold text-[#2563EB]">Registrar primer servicio</Text>
             </TouchableOpacity>
           </View>
         ) : (
           registros.map((item) => (
             <View
               key={item.id}
-              className="mb-3 rounded-[22px] border border-ruta-blue-line bg-white p-4 shadow-md shadow-ruta-navy/5"
+              className="mb-3 rounded-[22px] border border-[#E8ECF5] bg-white p-4 shadow-md shadow-[#0B1C30]/5"
             >
               <View className="flex-row items-start justify-between">
                 <View className="mr-3 flex-1">
-                  <Text className="text-base font-bold text-ruta-navy-deep">{item.service_type}</Text>
-                  <Text className="mt-1 text-xs text-ruta-blue-muted">
+                  <Text className="text-base font-bold text-[#0B1C30]">{item.service_type}</Text>
+                  <Text className="mt-1 text-xs text-[#45464D]">
                     {item.service_date} ·{' '}
                     {vehicle.type === 'bicycle' &&
                     (item.odometer_km == null || item.odometer_km === 0)
@@ -437,15 +622,15 @@ export default function VehicleDetailScreen() {
               </View>
 
               {item.notes ? (
-                <Text className="mt-3 rounded-xl border border-ruta-blue-line bg-[#F8FAFC] p-2.5 text-xs text-ruta-blue-muted">
+                <Text className="mt-3 rounded-xl border border-[#E8ECF5] bg-[#F8F9FF] p-2.5 text-xs text-[#45464D]">
                   {item.notes}
                 </Text>
               ) : null}
 
               {item.next_due_km != null || item.next_due_date ? (
-                <View className="mt-3 flex-row items-center gap-1.5 rounded-lg border border-ruta-amber/30 bg-ruta-amber-soft px-2.5 py-1.5">
-                  <Ionicons name="calendar-outline" size={14} color="#B45309" />
-                  <Text className="text-xs font-medium text-ruta-clay-dark">
+                <View className="mt-3 flex-row items-center gap-1.5 rounded-lg border border-[#FDE3B0] bg-[#FFF7E8] px-2.5 py-1.5">
+                  <Ionicons name="calendar-outline" size={14} color="#F59E0B" />
+                  <Text className="text-xs font-medium text-[#B45309]">
                     Próximo:{' '}
                     {item.next_due_km != null ? `${item.next_due_km.toLocaleString()} km` : ''}
                     {item.next_due_km != null && item.next_due_date ? ' o ' : ''}
@@ -454,7 +639,7 @@ export default function VehicleDetailScreen() {
                 </View>
               ) : null}
 
-              <View className="mt-3 flex-row justify-end gap-4 border-t border-ruta-blue-line pt-2.5">
+              <View className="mt-3 flex-row justify-end gap-4 border-t border-[#E8ECF5] pt-2.5">
                 <TouchableOpacity
                   className="flex-row items-center gap-1"
                   onPress={() =>
@@ -478,15 +663,15 @@ export default function VehicleDetailScreen() {
                   }
                 >
                   <Ionicons name="pencil-outline" size={14} color="#2563EB" />
-                  <Text className="text-xs font-semibold text-ruta-blue">Editar</Text>
+                  <Text className="text-xs font-semibold text-[#2563EB]">Editar</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   className="flex-row items-center gap-1"
                   onPress={() => handleDeleteRecord(item.id, item.service_type)}
                 >
-                  <Ionicons name="trash-outline" size={14} color="#B45309" />
-                  <Text className="text-xs font-semibold text-ruta-clay-dark">Eliminar</Text>
+                  <Ionicons name="trash-outline" size={14} color="#BA1A1A" />
+                  <Text className="text-xs font-semibold text-[#BA1A1A]">Eliminar</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -506,7 +691,7 @@ export default function VehicleDetailScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           className="flex-1"
         >
-          <View className="flex-1 bg-ruta-ink/35">
+          <View className="flex-1 bg-[#0B1C30]/45">
             <ScrollView
               contentContainerClassName="flex-grow justify-center px-5 py-8"
               keyboardShouldPersistTaps="handled"
@@ -549,7 +734,7 @@ export default function VehicleDetailScreen() {
                   </TouchableOpacity>
                   <TouchableOpacity
                     accessibilityRole="button"
-                    className="min-h-[48px] flex-1 items-center justify-center rounded-xl bg-ruta-navy-deep px-3"
+                    className="min-h-[48px] flex-1 items-center justify-center rounded-xl bg-[#2563EB] px-3"
                     onPress={() => void guardarKilometraje()}
                     disabled={kmSaving}
                   >
