@@ -7,7 +7,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Image } from 'expo-image';
+import { Image as ExpoImage } from 'expo-image';
+import { withUniwind } from 'uniwind';
 import { useAuth } from '@/context/AuthProvider';
 import { EntradaTexto } from '@/components/ui/EntradaTexto';
 import { Boton } from '@/components/ui/Boton';
@@ -16,6 +17,8 @@ import { Pantalla } from '@/components/ui/Pantalla';
 import { Texto as Text } from '@/components/ui/Texto';
 import { iniciarSesionConGoogle } from '@/services/googleAuth.service';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+
+const Image = withUniwind(ExpoImage);
 
 export default function LoginScreen() {
   const router = useRouter();
