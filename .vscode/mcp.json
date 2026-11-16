@@ -4,19 +4,17 @@
       "type": "http",
       "url": "https://mcp.supabase.com/mcp?project_ref=gijvveguckudngasyxhe&features=database,docs"
     },
-    "mobile": {
-      "type": "stdio",
-      "command": "cmd",
-      "args": [
-        "/c",
-        "npx",
-        "-y",
-        "@mobilenext/mobile-mcp@latest"
-      ]
-    },
     "penpot": {
       "type": "http",
       "url": "http://localhost:4401/mcp"
+    },
+    "expo": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "expo-mcp-server"
+      ]
     }
   }
 }
