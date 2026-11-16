@@ -6,7 +6,7 @@
 - Usa solo el proyecto de Supabase indicado en `.vscode/mcp.json` (`project_ref`). Es un proyecto de pruebas sin datos reales.
 - No desactives RLS para resolver problemas. No ejecutes operaciones destructivas (`DELETE` sin filtro, `DROP`, `TRUNCATE`) sin mi aprobación explícita en el chat.
 - No consultes la tabla `auth.users`: contiene correos reales.
-- Con Mobile-MCP usa solo Expo Go y la app Rodaje. Nunca escribas contraseñas ni uses cuentas personales.
+- Usa Supabase, Penpot y Expo MCP como servicios remotos. No inicies Metro ni la app salvo que lo pida explícitamente; nunca escribas contraseñas ni tokens en el chat o el repositorio.
 - Los servidores MCP son herramientas de desarrollo: no van dentro de la app ni son necesarios para que funcione.
 
 ## Honestidad
