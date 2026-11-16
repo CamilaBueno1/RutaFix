@@ -1,6 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, TouchableOpacity, View } from 'react-native';
 import { BotonCerrarSesion } from '@/components/ui/BotonCerrarSesion';
 import { FondoClaymorphism } from '@/components/ui/FondoClaymorphism';
@@ -26,7 +26,9 @@ export default function PanelScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { vehiculos, cargando, error, recargar } = useVehiculos();
-  const vehiculo = vehiculos[0];
+  const [vehiculoSeleccionadoId, setVehiculoSeleccionadoId] = useState<string | null>(null);
+  const vehiculo =
+    vehiculos.find((item) => item.id === vehiculoSeleccionadoId) ?? vehiculos[0];
   const distancia = vehiculo?.type === 'bicycle' && vehiculo.current_km === 0
     ? null
     : vehiculo?.current_km ?? null;
@@ -116,6 +118,99 @@ export default function PanelScreen() {
           <View className="mb-4 flex-row items-start gap-2 rounded-xl border border-ruta-clay/30 bg-ruta-clay-soft p-3.5">
             <Ionicons name="alert-circle-outline" size={18} color="#984629" />
             <Text className="flex-1 text-xs leading-5 text-ruta-clay-dark">{error}</Text>
+          </View>
+        ) : null}
+
+        {vehiculos.length > 1 ? (
+          <View className="mb-5">
+            <View className="mb-3 flex-row items-end justify-between">
+              <View>
+                <Text className="text-base font-bold text-ruta-navy">Mis vehículos</Text>
+                <Text className="mt-0.5 text-xs text-ruta-blue-muted">
+                  Selecciona uno para ver su panel
+                </Text>
+              </View>
+              <Text className="text-xs font-semibold text-ruta-blue-muted">
+                {vehiculos.length} registrados
+              </Text>
+            </View>
+            <ScrollView
+              horizontal
+              nestedScrollEnabled
+              showsHorizontalScrollIndicator={false}
+              contentContainerClassName="gap-3 pr-5"
+            >
+              {vehiculos.map((item) => {
+                const seleccionado = item.id === vehiculo?.id;
+                const detalles = [item.brand, item.model, item.year]
+                  .filter(Boolean)
+                  .join(' · ');
+
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Ver panel de ${item.name}`}
+                    accessibilityState={{ selected: seleccionado }}
+                    activeOpacity={0.8}
+                    className={`w-[220px] rounded-2xl border p-3.5 ${
+                      seleccionado
+                        ? 'border-[#2563EB] bg-[#EFF6FF]'
+                        : 'border-ruta-blue-line bg-white'
+                    }`}
+                    onPress={() => setVehiculoSeleccionadoId(item.id)}
+                  >
+                    <View className="flex-row items-center gap-2.5">
+                      <View
+                        className="h-10 w-10 items-center justify-center rounded-xl"
+                        style={{ backgroundColor: COLORES_TIPO_VEHICULO[item.type].fondo }}
+                      >
+                        <MaterialCommunityIcons
+                          name={ICONOS_TIPO_VEHICULO[item.type]}
+                          size={22}
+                          color={COLORES_TIPO_VEHICULO[item.type].icono}
+                        />
+                      </View>
+                      <View className="flex-1">
+                        <Text
+                          className="text-sm font-bold text-ruta-navy"
+                          numberOfLines={1}
+                        >
+                          {item.name}
+                        </Text>
+                        <Text
+                          className="mt-0.5 text-xs text-ruta-blue-muted"
+                          numberOfLines={1}
+                        >
+                          {detalles || 'Detalles por completar'}
+                        </Text>
+                      </View>
+                      {seleccionado ? (
+                        <Ionicons name="checkmark-circle" size={19} color="#2563EB" />
+                      ) : null}
+                    </View>
+                    <View className="mt-3 flex-row items-center justify-between gap-2">
+                      <Text
+                        className="flex-1 text-[11px] font-semibold text-ruta-blue-muted"
+                        numberOfLines={1}
+                      >
+                        {distanciaDelVehiculo(
+                          item.type,
+                          item.type === 'bicycle' && item.current_km === 0
+                            ? null
+                            : item.current_km
+                        )}
+                      </Text>
+                      {item.plate ? (
+                        <Text className="text-[10px] font-extrabold tracking-wide text-ruta-navy">
+                          {item.plate.toUpperCase()}
+                        </Text>
+                      ) : null}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
           </View>
         ) : null}
 

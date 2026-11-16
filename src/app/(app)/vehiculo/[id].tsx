@@ -10,7 +10,6 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { Image } from 'expo-image';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import {
   obtenerVehiculoPorId,
@@ -333,22 +332,14 @@ export default function VehicleDetailScreen() {
           </View>
 
           <View className="relative mt-4 h-[190px] overflow-hidden rounded-[22px] bg-[#F0F5FF]">
-            {vehicle.type === 'car' ? (
-              <Image
-                source={require('../../../../assets/images/hero.png')}
-                style={{ height: '100%', width: '100%' }}
-                contentFit="contain"
+            <View className="h-full w-full items-center justify-center">
+              <View className="absolute h-36 w-36 rounded-full border-[18px] border-white/70" />
+              <MaterialCommunityIcons
+                name={ICONOS_TIPO_VEHICULO[vehicle.type]}
+                size={94}
+                color={tipoColor.icono}
               />
-            ) : (
-              <View className="h-full w-full items-center justify-center">
-                <View className="absolute h-36 w-36 rounded-full border-[18px] border-white/70" />
-                <MaterialCommunityIcons
-                  name={ICONOS_TIPO_VEHICULO[vehicle.type]}
-                  size={94}
-                  color={tipoColor.icono}
-                />
-              </View>
-            )}
+            </View>
             <View className="absolute bottom-3 left-3 right-3 flex-row items-center justify-between">
               <View className="rounded-xl border border-[#E2E8F0] bg-white px-3 py-2 shadow-sm">
                 <Text className="text-xs font-extrabold tracking-wider text-[#131B2E]">
