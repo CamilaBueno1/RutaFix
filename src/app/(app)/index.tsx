@@ -23,13 +23,33 @@ import { Pantalla } from '@/components/ui/Pantalla';
 import { Texto as Text } from '@/components/ui/Texto';
 import { FormularioVehiculo } from '@/components/vehiculos/FormularioVehiculo';
 import {
-  COLORES_TIPO_VEHICULO,
   ICONOS_TIPO_VEHICULO,
   TarjetaVehiculo,
 } from '@/components/vehiculos/TarjetaVehiculo';
 import { NavegacionInferior } from '@/components/ui/NavegacionInferior';
 
 type CreationStep = 'category' | 'form' | 'success';
+
+const COLORES_TIPO_SELECCION: Record<TipoVehiculo, { fondo: string; icono: string }> = {
+  car: { fondo: '#EFF6FF', icono: '#0F172A' },
+  motorcycle: { fondo: '#FFFBEB', icono: '#B45309' },
+  bicycle: { fondo: '#ECFDF5', icono: '#047857' },
+  scooter: { fondo: '#ECFEFF', icono: '#0E7490' },
+};
+
+const DESCRIPCIONES_TIPO: Record<TipoVehiculo, string> = {
+  car: 'Sedán, hatchback, SUV o camioneta.',
+  motorcycle: 'Moto urbana, scooter deportiva o de viaje.',
+  bicycle: 'Bicicleta de ruta, montaña, fixie o urbana.',
+  scooter: 'Monopatín eléctrico y micromovilidad.',
+};
+
+const ETIQUETAS_TIPO: Record<TipoVehiculo, string> = {
+  car: 'Auto / SUV',
+  motorcycle: 'Moto',
+  bicycle: 'Bicicleta',
+  scooter: 'Scooter / Movilidad eléctrica',
+};
 
 interface VehicleCreationFlowProps {
   step: CreationStep;
@@ -62,10 +82,10 @@ function VehicleCreationFlow({
 
   if (step === 'success') {
     return (
-      <Pantalla className="items-center justify-center bg-ruta-canvas px-6">
-        <View className="w-full items-center rounded-2xl border border-ruta-line bg-ruta-surface p-7 shadow-lg shadow-[#242725]/5">
-          <View className="mb-5 h-20 w-20 items-center justify-center rounded-2xl bg-ruta-sage-soft">
-            <Ionicons name="checkmark-circle" size={46} color="#4D6B53" />
+      <Pantalla className="items-center justify-center bg-[#F8FBFF] px-6">
+        <View className="w-full items-center rounded-2xl border border-ruta-blue-line bg-white p-7 shadow-lg shadow-ruta-navy/5">
+          <View className="mb-5 h-20 w-20 items-center justify-center rounded-2xl bg-ruta-success-soft">
+            <Ionicons name="checkmark-circle" size={46} color="#059669" />
           </View>
           <Text className="text-center text-2xl font-extrabold text-ruta-ink">
             ¡Ya está en tu garaje!
@@ -75,7 +95,7 @@ function VehicleCreationFlow({
           </Text>
           <TouchableOpacity
             accessibilityRole="button"
-            className="mt-6 min-h-[52px] w-full items-center justify-center rounded-xl bg-ruta-sage py-3.5"
+            className="mt-6 min-h-[52px] w-full items-center justify-center rounded-xl bg-ruta-navy-deep py-3.5"
             onPress={onClose}
           >
             <Text className="text-sm font-bold text-white">Ver mi garaje</Text>
@@ -86,115 +106,126 @@ function VehicleCreationFlow({
   }
 
   return (
-    <Pantalla className="bg-ruta-canvas">
-      <View className="flex-row items-center justify-between px-5 pb-3 pt-2">
+    <Pantalla className="bg-[#F8FBFF]">
+      <View className="flex-row items-center justify-between px-6 pb-3 pt-2">
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel="Cerrar selección de categoría"
-          className="h-11 w-11 items-center justify-center rounded-xl border border-ruta-line bg-ruta-surface shadow-sm"
+          className="h-10 w-10 items-center justify-center rounded-xl border border-ruta-blue-line bg-white shadow-sm"
           onPress={onClose}
           hitSlop={8}
         >
-          <Ionicons name="close" size={21} color="#514F48" />
+          <Ionicons name="close" size={20} color="#334155" />
         </TouchableOpacity>
-        <View className="items-center">
-          <Text className="text-[11px] font-semibold tracking-wide text-ruta-sage">
-            Nuevo en tu garaje
+        <View className="flex-row items-center gap-1.5 rounded-full border border-ruta-blue-line bg-[#F1F5F9] px-3 py-1.5">
+          <View className="h-2 w-2 rounded-full bg-ruta-cyan" />
+          <Text className="text-xs font-semibold tracking-tight text-[#334155]">
+            Paso 1 de 2 • Tipo de transporte
           </Text>
-          <Text className="mt-0.5 text-xs text-ruta-muted">Paso 1 de 2</Text>
         </View>
-        <View className="h-11 w-11" />
+        <View className="h-10 w-10 items-center justify-center">
+          <MaterialCommunityIcons name="car-side" size={22} color="#94A3B8" />
+        </View>
       </View>
 
       <ScrollView
-        contentContainerClassName="px-5 pb-8"
+        contentContainerClassName="px-6 pb-5 pt-4"
         showsVerticalScrollIndicator={false}
       >
-        <View className="mb-6">
-          <Text className="text-2xl font-bold leading-8 text-ruta-ink">
+        <View className="mb-5">
+          <Text className="text-[24px] font-extrabold leading-[30px] tracking-tight text-ruta-navy-deep">
             ¿Qué vehículo vas a agregar?
           </Text>
-          <Text className="mt-2 text-sm leading-5 text-ruta-muted">
-            Selecciona el tipo de transporte para preparar su ficha y mantenimiento.
+          <Text className="mt-1.5 text-sm leading-[23px] text-ruta-blue-muted">
+            Selecciona el tipo de transporte para preparar su ficha y plan de mantenimiento.
           </Text>
         </View>
 
         <View className="gap-3">
           {TIPOS_VEHICULOS.map((vehicleType) => {
             const selected = type === vehicleType.valor;
-            const colors = COLORES_TIPO_VEHICULO[vehicleType.valor];
+            const colors = COLORES_TIPO_SELECCION[vehicleType.valor];
             return (
               <TouchableOpacity
                 key={vehicleType.valor}
                 accessibilityRole="button"
                 accessibilityState={{ selected }}
-                className={`min-h-[88px] flex-row items-start rounded-2xl border p-4 ${
+                className={`min-h-[82px] flex-row items-center justify-between rounded-2xl p-3.5 shadow-sm ${
                   selected
-                    ? 'border-2 border-ruta-sage bg-ruta-surface shadow-sm shadow-[#242725]/5'
-                    : 'border-ruta-line bg-ruta-surface'
+                    ? 'border-2 border-ruta-navy-deep bg-white'
+                    : 'border border-ruta-blue-line bg-white'
                 }`}
                 onPress={() => onSelectType(vehicleType.valor)}
                 activeOpacity={0.82}
               >
+                <View className="flex-row items-center">
+                  <View
+                    className="mr-3.5 h-12 w-12 items-center justify-center rounded-xl border border-ruta-blue-soft"
+                    style={{ backgroundColor: colors.fondo }}
+                  >
+                    <MaterialCommunityIcons
+                      name={ICONOS_TIPO_VEHICULO[vehicleType.valor]}
+                      size={27}
+                      color={colors.icono}
+                    />
+                  </View>
+                  <View className="flex-1 pr-2">
+                    <View className="flex-row items-center gap-2">
+                      <Text className="text-base font-bold text-ruta-navy-deep">
+                        {ETIQUETAS_TIPO[vehicleType.valor]}
+                      </Text>
+                      {selected ? (
+                        <Text className="rounded bg-ruta-navy-deep px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                          Activo
+                        </Text>
+                      ) : null}
+                    </View>
+                    <Text className="mt-0.5 text-[12.5px] leading-[18px] text-ruta-blue-muted">
+                      {DESCRIPCIONES_TIPO[vehicleType.valor]}
+                    </Text>
+                  </View>
+                </View>
                 <View
-                  className="mr-3.5 h-12 w-12 items-center justify-center rounded-xl"
-                  style={{ backgroundColor: colors.fondo }}
+                  className={`mr-1 h-5 w-5 items-center justify-center rounded-full ${
+                    selected ? 'bg-ruta-navy-deep' : 'border-2 border-[#CBD5E1] bg-white'
+                  }`}
                 >
-                  <MaterialCommunityIcons
-                    name={ICONOS_TIPO_VEHICULO[vehicleType.valor]}
-                    size={29}
-                    color={colors.icono}
-                  />
+                  {selected ? <Ionicons name="checkmark" size={14} color="#FFFFFF" /> : null}
                 </View>
-                <View className="flex-1 pr-2">
-                  <Text className="text-base font-semibold text-ruta-ink">
-                    {vehicleType.etiqueta}
-                  </Text>
-                  <Text className="mt-1 text-xs leading-4 text-ruta-muted">
-                    {vehicleType.valor === 'car'
-                      ? 'Auto, sedán, hatchback o SUV.'
-                      : vehicleType.valor === 'motorcycle'
-                        ? 'Moto urbana, scooter o de viaje.'
-                        : vehicleType.valor === 'bicycle'
-                          ? 'Bicicleta de ruta, montaña o urbana.'
-                          : 'Scooter eléctrico y movilidad ligera.'}
-                  </Text>
-                </View>
-                {selected ? (
-                  <Ionicons name="checkmark-circle" size={22} color="#4D6B53" />
-                ) : (
-                  <Ionicons name="ellipse-outline" size={22} color="#C2C8C0" />
-                )}
               </TouchableOpacity>
             );
           })}
         </View>
 
-        <View className="mt-5 rounded-xl border border-ruta-line bg-ruta-soft p-3.5">
-          <Text className="text-xs leading-5 text-ruta-muted">
-            Podrás personalizar el apodo, el kilometraje inicial y los datos del vehículo en el
-            siguiente paso.
+        <View className="mt-4 flex-row items-start gap-3 rounded-2xl border border-[#D6E6FF] bg-[#EFF6FF] p-3.5">
+          <Ionicons name="information-circle-outline" size={20} color="#2563EB" />
+          <Text className="flex-1 text-[12.5px] leading-5 text-[#475569]">
+            Podrás personalizar el apodo, kilometraje inicial y datos técnicos en el siguiente paso.
           </Text>
         </View>
       </ScrollView>
 
-      <View className="px-5 pb-4 pt-2">
+      <View className="px-6 pb-6 pt-2">
         <TouchableOpacity
           accessibilityRole="button"
-          className="min-h-[52px] flex-row items-center justify-center gap-2 rounded-xl bg-ruta-sage px-5 py-3.5 shadow-md shadow-[#4D6B53]/15 active:scale-[0.98]"
+          className="relative min-h-14 flex-row items-center justify-center gap-2 overflow-hidden rounded-2xl bg-ruta-navy-deep px-5 shadow-lg shadow-ruta-navy/10 active:scale-[0.99]"
           onPress={onContinue}
           activeOpacity={0.85}
         >
-          <Text className="text-sm font-semibold text-white">Continuar</Text>
-          <Ionicons name="arrow-forward" size={19} color="#FFFFFF" />
+          <View className="absolute -right-2 -top-3 h-8 w-8 rotate-45 bg-ruta-amber" />
+          <Text className="text-base font-semibold text-white">Continuar</Text>
+          <Text className="text-xl font-bold text-ruta-amber">→</Text>
         </TouchableOpacity>
         <TouchableOpacity
           accessibilityRole="button"
-          className="mt-1 min-h-11 items-center justify-center"
+          className="mt-3 min-h-11 items-center justify-center"
           onPress={onClose}
         >
-          <Text className="text-sm font-medium text-ruta-muted">Cancelar</Text>
+          <Text className="text-[15px] font-medium text-ruta-blue-muted">Volver al garaje</Text>
         </TouchableOpacity>
+        <View className="mt-3 h-[2px] w-36 self-center rounded-full bg-ruta-cyan">
+          <View className="absolute left-1/2 top-[-1px] h-1 w-1 rounded-full bg-ruta-amber" />
+        </View>
       </View>
     </Pantalla>
   );
@@ -314,84 +345,103 @@ export default function VehiclesListScreen() {
   }
 
   return (
-    <Pantalla sinInferior className="bg-ruta-canvas">
+    <Pantalla sinInferior className="bg-[#F8FBFF]">
       <Animated.View
-        className="relative overflow-hidden rounded-b-[28px] bg-ruta-sage-soft px-5 pb-5 pt-3"
+        className="relative overflow-hidden rounded-b-[28px] bg-[#EDF5FC] px-5 pb-5 pt-3"
         style={entranceStyle}
       >
-        <View className="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-[#DCE7DE]" />
-        <View className="absolute right-32 top-28 h-12 w-12 rounded-full bg-ruta-clay-soft" />
+        <View className="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-[#DBEAFE]" />
+        <View className="absolute right-32 top-28 h-12 w-12 rounded-full bg-[#FEF3C7]" />
         <View className="relative">
           <View className="flex-row items-center justify-between">
             <View className="flex-row items-center gap-3">
-              <View className="h-12 w-12 items-center justify-center rounded-xl border border-ruta-line bg-ruta-surface shadow-sm">
-                <MaterialCommunityIcons name="car-side" size={26} color="#4D6B53" />
+              <View className="h-12 w-12 items-center justify-center rounded-xl border border-ruta-blue-line bg-white shadow-sm">
+                <MaterialCommunityIcons name="car-side" size={26} color="#192841" />
               </View>
               <View>
-                <Text className="text-[11px] font-semibold tracking-wide text-ruta-sage-dark">
-                  RutaFix · Tu garaje
+                <Text className="text-sm font-extrabold tracking-tight text-ruta-navy">
+                  Ruta<Text className="text-ruta-blue">Fix</Text>
+                  <Text className="text-[#F59E0B]"> • </Text>
+                  <Text className="font-semibold text-ruta-blue-muted">Garaje</Text>
                 </Text>
-                <Text className="mt-1 max-w-56 text-xs text-ruta-muted" numberOfLines={1}>
-                  {user?.email || 'Un lugar para lo que te mueve'}
+                <Text className="mt-0.5 max-w-56 text-xs text-ruta-blue-muted" numberOfLines={1}>
+                  {user?.email || 'Tu espacio para lo que te mueve'}
                 </Text>
               </View>
             </View>
             <TouchableOpacity
               accessibilityRole="button"
               accessibilityLabel="Cerrar sesión"
-              className="h-10 w-10 items-center justify-center rounded-full border border-ruta-line bg-ruta-surface shadow-sm"
+              className="h-10 w-10 items-center justify-center rounded-full border border-ruta-blue-line bg-white shadow-sm"
               onPress={handleSignOut}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Ionicons name="log-out-outline" size={20} color="#36533C" />
+              <Ionicons name="log-out-outline" size={20} color="#475569" />
             </TouchableOpacity>
           </View>
           <View className="mt-5">
-            <View className="mb-2 self-start flex-row items-center gap-2 rounded-full border border-ruta-sage/15 bg-ruta-surface px-3 py-1.5">
-              <View className="h-1.5 w-1.5 rounded-full bg-ruta-sage" />
-              <Text className="text-[10px] font-bold uppercase tracking-[1.2px] text-ruta-sage-dark">
+            <View className="mb-2 self-start flex-row items-center gap-2 rounded-full border border-[#DBEAFE] bg-[#EFF6FF] px-3 py-1.5">
+              <View className="h-1.5 w-1.5 rounded-full bg-ruta-blue" />
+              <Text className="text-[11px] font-bold uppercase tracking-wide text-ruta-blue">
                 Panel de control
               </Text>
             </View>
-            <Text className="text-[27px] font-bold leading-8 text-ruta-ink">
+            <Text className="text-[28px] font-extrabold leading-[34px] tracking-tight text-ruta-navy-deep">
               ¡Hola! Tu garaje te espera.
             </Text>
-            <Text className="mt-1 text-sm leading-5 text-ruta-muted">
-              Monitorea la distancia y el mantenimiento de tus vehículos.
+            <Text className="mt-1 text-[13.5px] leading-5 text-ruta-blue-muted">
+              Monitorea el kilometraje y mantenimiento de cada vehículo al instante.
             </Text>
           </View>
           <View className="mt-4">
-            <View className="flex-row items-center gap-3 rounded-xl border border-ruta-line bg-ruta-surface px-3.5 py-3">
-              <View className="h-10 w-10 items-center justify-center rounded-xl bg-ruta-sage-soft">
-                <Ionicons name="albums-outline" size={20} color="#4D6B53" />
+            <View className="flex-row items-center gap-3 rounded-2xl border border-ruta-blue-line bg-white px-3.5 py-3 shadow-sm">
+              <View className="h-11 w-11 items-center justify-center rounded-xl border border-[#DBEAFE] bg-ruta-blue-soft">
+                <Ionicons name="car-sport" size={23} color="#2563EB" />
               </View>
               <View className="flex-1">
-                <Text className="text-lg font-bold text-ruta-ink">{vehiculos.length}</Text>
-                <Text className="text-xs font-medium text-ruta-muted">
-                  {vehiculos.length === 1 ? 'vehículo registrado' : 'vehículos registrados'}
+                <View className="flex-row items-baseline gap-1.5">
+                  <Text className="text-2xl font-extrabold leading-none text-ruta-navy-deep">
+                    {vehiculos.length}
+                  </Text>
+                  <Text className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">
+                    Registrados
+                  </Text>
+                </View>
+                <Text className="mt-0.5 text-xs font-medium text-[#475569]">
+                  Vehículos activos en tu flota
                 </Text>
               </View>
+              {vehiculos.length > 0 ? (
+                <View className="flex-row items-center gap-1.5 rounded-full border border-[#A7F3D0] bg-ruta-success-soft px-2.5 py-1">
+                  <Ionicons name="checkmark-circle" size={15} color="#059669" />
+                  <Text className="text-[11px] font-bold text-ruta-success">Registrados</Text>
+                </View>
+              ) : null}
             </View>
             <TouchableOpacity
               accessibilityRole="button"
               accessibilityLabel="Agregar vehículo"
-              className="mt-3 min-h-[58px] flex-row items-center gap-3 rounded-xl bg-ruta-sage px-4 shadow-md shadow-[#4D6B53]/15 active:scale-[0.98]"
+              className="mt-4 min-h-16 flex-row items-center justify-between rounded-2xl bg-ruta-navy-deep p-3.5 shadow-lg shadow-ruta-navy/15 active:scale-[0.99]"
               activeOpacity={0.85}
               onPress={() => {
                 setCreationType('car');
                 setCreationStep('category');
               }}
             >
-              <View className="h-9 w-9 items-center justify-center rounded-xl bg-white/15">
-                <Ionicons name="add" size={21} color="#FFFFFF" />
+              <View className="flex-row items-center gap-3">
+                <View className="h-10 w-10 items-center justify-center rounded-xl bg-ruta-amber">
+                  <Ionicons name="add" size={23} color="#0F172A" />
+                </View>
+                <View>
+                  <Text className="text-[14.5px] font-bold text-white">Agregar vehículo</Text>
+                  <Text className="mt-0.5 text-[11px] text-[#CBD5E1]">
+                    Auto, moto, bicicleta o scooter
+                  </Text>
+                </View>
               </View>
-              <View>
-                <Text className="text-sm font-semibold text-white">Agregar vehículo</Text>
-                <Text className="mt-0.5 text-xs text-white/85">
-                  Auto, moto, bicicleta o scooter
-                </Text>
+              <View className="h-8 w-8 items-center justify-center rounded-full bg-white/10">
+                <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
               </View>
-              <Ionicons name="arrow-forward" size={19} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         </View>
@@ -408,25 +458,30 @@ export default function VehiclesListScreen() {
             accessibilityState={{ selected: selectedType === 'todos' }}
             className={`rounded-full border-2 px-4 py-2 ${
               selectedType === 'todos'
-                ? 'border-ruta-sage bg-ruta-sage'
-                  : 'border-ruta-line bg-ruta-surface shadow-sm shadow-[#242725]/5'
+                ? 'border-ruta-navy-deep bg-ruta-navy-deep'
+                : 'border-ruta-blue-line bg-white shadow-sm shadow-ruta-navy/5'
             }`}
             onPress={() => setSelectedType('todos')}
           >
-            <Text
-              className={`text-xs font-extrabold ${
-                selectedType === 'todos' ? 'text-white' : 'text-[#625F57]'
-              }`}
-            >
-              Todos · {vehiculos.length}
-            </Text>
+            <View className="flex-row items-center gap-1.5">
+              <Text className={`text-[12.5px] font-bold ${selectedType === 'todos' ? 'text-white' : 'text-[#334155]'}`}>
+                Todos
+              </Text>
+              <View className="rounded-full bg-ruta-amber px-1.5 py-0.5">
+                <Text className="text-[10px] font-extrabold text-ruta-navy-deep">{vehiculos.length}</Text>
+              </View>
+            </View>
           </TouchableOpacity>
 
-          {TIPOS_VEHICULOS.filter((tipo) =>
-            vehiculos.some((vehicle) => vehicle.type === tipo.valor)
-          ).map((tipo) => {
+          {TIPOS_VEHICULOS.map((tipo) => {
             const count = vehiculos.filter((vehicle) => vehicle.type === tipo.valor).length;
             const isActive = selectedType === tipo.valor;
+            const etiqueta = {
+              car: 'Autos',
+              motorcycle: 'Motos',
+              bicycle: 'Bicicletas',
+              scooter: 'Scooters',
+            }[tipo.valor];
             return (
               <TouchableOpacity
                 key={tipo.valor}
@@ -434,14 +489,19 @@ export default function VehiclesListScreen() {
                 accessibilityState={{ selected: isActive }}
                 className={`rounded-full border-2 px-4 py-2 ${
                   isActive
-                    ? 'border-ruta-sage bg-ruta-sage-soft'
-                    : 'border-ruta-line bg-ruta-surface shadow-sm shadow-[#242725]/5'
+                    ? 'border-ruta-navy-deep bg-ruta-navy-deep'
+                    : 'border-ruta-blue-line bg-white shadow-sm shadow-ruta-navy/5'
                 }`}
                 onPress={() => setSelectedType(tipo.valor)}
               >
-                <Text className={`text-xs font-semibold ${isActive ? 'text-ruta-sage-dark' : 'text-ruta-muted'}`}>
-                  {tipo.etiqueta} · {count}
-                </Text>
+                <View className="flex-row items-center gap-1.5">
+                  <Text className={`text-[12.5px] font-semibold ${isActive ? 'text-white' : 'text-[#334155]'}`}>
+                    {etiqueta}
+                  </Text>
+                  <View className={`rounded-full px-1.5 py-0.5 ${isActive ? 'bg-ruta-amber' : 'bg-[#F1F5F9]'}`}>
+                    <Text className="text-[10px] font-bold text-[#475569]">{count}</Text>
+                  </View>
+                </View>
               </TouchableOpacity>
             );
           })}
@@ -456,7 +516,7 @@ export default function VehiclesListScreen() {
 
       {cargando && vehiculos.length === 0 ? (
         <View className="flex-1 justify-center items-center p-6">
-          <ActivityIndicator size="large" color="#4D6B53" />
+          <ActivityIndicator size="large" color="#2563EB" />
           <Text className="mt-3 text-sm text-ruta-muted">Cargando tus vehículos...</Text>
         </View>
       ) : (
@@ -474,14 +534,14 @@ export default function VehiclesListScreen() {
             <RefreshControl
               refreshing={cargando}
               onRefresh={recargar}
-              colors={['#4D6B53']}
+              colors={['#2563EB']}
             />
           }
           ListEmptyComponent={
             <Animated.View className="items-center justify-center px-6 py-14" style={entranceStyle}>
-              <View className="mb-5 h-24 w-24 items-center justify-center rounded-2xl border border-ruta-line bg-ruta-sage-soft shadow-md shadow-[#242725]/5">
-                <View className="h-16 w-16 items-center justify-center rounded-xl bg-ruta-surface">
-                  <MaterialCommunityIcons name="car-side" size={36} color="#4D6B53" />
+              <View className="mb-5 h-24 w-24 items-center justify-center rounded-2xl border border-ruta-blue-line bg-ruta-blue-soft shadow-md shadow-ruta-navy/5">
+                <View className="h-16 w-16 items-center justify-center rounded-xl bg-white">
+                  <MaterialCommunityIcons name="car-side" size={36} color="#2563EB" />
                 </View>
               </View>
               <Text className="mb-2 text-xl font-bold text-ruta-ink">
@@ -493,7 +553,7 @@ export default function VehiclesListScreen() {
                   : `No tienes registros en la categoría "${TIPOS_VEHICULOS.find((t) => t.valor === selectedType)?.etiqueta}".`}
               </Text>
               {vehiculos.length === 0 ? (
-                <Text className="text-xs font-semibold text-ruta-sage">
+                <Text className="text-xs font-semibold text-ruta-blue">
                   Empieza con el botón “Agregar vehículo” de arriba.
                 </Text>
               ) : null}

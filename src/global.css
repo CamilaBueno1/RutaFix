@@ -1,2 +1,32 @@
 @import "tailwindcss";
 @import "uniwind";
+
+@theme {
+  --color-ruta-canvas: #F7F5F0;
+  --color-ruta-surface: #FFFFFF;
+  --color-ruta-soft: #F3F4F0;
+  --color-ruta-inset: #EFECE4;
+  --color-ruta-line: #E4DFD5;
+  --color-ruta-ink: #242725;
+  --color-ruta-muted: #686E69;
+  --color-ruta-sage: #4D6B53;
+  --color-ruta-sage-dark: #36533C;
+  --color-ruta-sage-soft: #EAF0EB;
+  --color-ruta-clay: #C26747;
+  --color-ruta-clay-dark: #984629;
+  --color-ruta-clay-soft: #F7EDE8;
+  --color-ruta-navy: #192841;
+  --color-ruta-navy-deep: #0F172A;
+  --color-ruta-blue: #2563EB;
+  --color-ruta-blue-soft: #EFF6FF;
+  --color-ruta-blue-input: #EBF1F7;
+  --color-ruta-blue-line: #D8E2ED;
+  --color-ruta-blue-muted: #68778D;
+  --color-ruta-amber: #F59E0B;
+  --color-ruta-amber-soft: #FFFBEB;
+  --color-ruta-success: #059669;
+  --color-ruta-success-soft: #ECFDF5;
+  --color-ruta-cyan: #06B6D4;
+  --color-ruta-cyan-soft: #ECFEFF;
+  --font-ruta: "PlusJakartaSans_400Regular";
+}

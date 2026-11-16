@@ -1,6 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, TouchableOpacity, View } from 'react-native';
 import { NavegacionInferior } from '@/components/ui/NavegacionInferior';
 import { Pantalla } from '@/components/ui/Pantalla';
@@ -9,6 +9,8 @@ import { useAuth } from '@/context/AuthProvider';
 import { useMantenimiento } from '@/hooks/useMantenimiento';
 import { useVehiculos } from '@/hooks/useVehiculos';
 import { COLORES_TIPO_VEHICULO, ICONOS_TIPO_VEHICULO } from '@/components/vehiculos/TarjetaVehiculo';
+import { TIPOS_VEHICULOS } from '@/services/vehiculos.service';
+import type { TipoVehiculo } from '@/types/database.types';
 
 function distanciaDelVehiculo(
   tipo: 'car' | 'motorcycle' | 'bicycle' | 'scooter',
@@ -24,6 +26,11 @@ export default function PanelScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { vehiculos, cargando, error, recargar } = useVehiculos();
+  const [tipoSeleccionado, setTipoSeleccionado] = useState<TipoVehiculo | 'todos'>('todos');
+  const vehiculosFiltrados =
+    tipoSeleccionado === 'todos'
+      ? vehiculos
+      : vehiculos.filter((item) => item.type === tipoSeleccionado);
   const vehiculo = vehiculos[0];
   const distancia = vehiculo?.type === 'bicycle' && vehiculo.current_km === 0
     ? null
@@ -43,12 +50,27 @@ export default function PanelScreen() {
   const abrirGaraje = () => router.push('/(app)');
   const agregarVehiculo = () =>
     router.push({ pathname: '/(app)', params: { alta: 'vehiculo' } });
+  const registrarMantenimiento = () => {
+    if (!vehiculo) return;
+    router.push({
+      pathname: '/(app)/mantenimiento/formulario',
+      params: {
+        vehicle_id: vehiculo.id,
+        current_km: distancia == null ? undefined : String(distancia),
+        vehicle_name: vehiculo.name,
+        vehicle_label: [vehiculo.brand, vehiculo.model, vehiculo.year]
+          .filter(Boolean)
+          .join(' · '),
+        vehicle_type: vehiculo.type,
+      },
+    });
+  };
 
   const etiquetaEstado = estadoServicio.etiqueta;
   const estadoPendiente = estadoServicio.estado === 'proximo' || estadoServicio.estado === 'vencido';
 
   return (
-    <Pantalla sinInferior className="bg-ruta-canvas">
+    <Pantalla sinInferior className="bg-[#F8FBFF]">
       <ScrollView
         className="flex-1"
         contentContainerClassName="px-5 pb-6 pt-3"
@@ -56,36 +78,36 @@ export default function PanelScreen() {
           <RefreshControl
             refreshing={cargando || Boolean(vehiculo && cargandoMantenimientos)}
             onRefresh={() => void actualizar()}
-            colors={['#4D6B53']}
-            tintColor="#4D6B53"
+            colors={['#2563EB']}
+            tintColor="#2563EB"
           />
         }
         showsVerticalScrollIndicator={false}
       >
         <View className="mb-6 flex-row items-center justify-between">
           <View className="flex-row items-center gap-3">
-            <View className="h-12 w-12 items-center justify-center rounded-2xl bg-ruta-sage shadow-sm">
+            <View className="h-12 w-12 items-center justify-center rounded-2xl bg-ruta-navy-deep shadow-sm">
               <MaterialCommunityIcons name="car-side" size={28} color="#FFFFFF" />
             </View>
             <View>
-              <Text className="text-lg font-extrabold text-ruta-ink">
-                <Text className="text-ruta-sage-dark">Ruta</Text>Fix
+              <Text className="text-lg font-extrabold text-ruta-navy">
+                Ruta<Text className="text-ruta-blue">Fix</Text>
               </Text>
-              <Text className="text-xs text-ruta-muted">Tu centro de mando</Text>
+              <Text className="text-xs text-ruta-blue-muted">Tu centro de mando</Text>
             </View>
           </View>
-          <View className="rounded-full border border-ruta-line bg-ruta-surface px-3 py-2">
-            <Text className="text-xs font-semibold text-ruta-sage-dark">
+          <View className="rounded-full border border-ruta-blue-line bg-ruta-surface px-3 py-2">
+            <Text className="text-xs font-semibold text-ruta-navy">
               {vehiculos.length} {vehiculos.length === 1 ? 'vehículo' : 'vehículos'}
             </Text>
           </View>
         </View>
 
         <View className="mb-5">
-          <Text className="text-[27px] font-extrabold leading-8 text-ruta-ink">
+          <Text className="text-[27px] font-extrabold leading-8 text-ruta-navy">
             Hola, {user?.user_metadata?.name || 'tu ruta te espera'}.
           </Text>
-          <Text className="mt-2 text-sm leading-5 text-ruta-muted">
+          <Text className="mt-2 text-sm leading-5 text-ruta-blue-muted">
             Dale a cada viaje el cuidado que merece.
           </Text>
         </View>
@@ -98,10 +120,10 @@ export default function PanelScreen() {
         ) : null}
 
         {vehiculo ? (
-          <View className="mb-5 overflow-hidden rounded-[26px] border border-ruta-sage-dark/20 bg-ruta-sage-dark shadow-md shadow-[#242725]/10">
-            <View className="flex-row items-center gap-3 border-b border-white/15 p-4">
+          <View className="mb-5 overflow-hidden rounded-[26px] border border-ruta-blue-line bg-white shadow-md shadow-ruta-navy/10">
+            <View className="flex-row items-center gap-3 border-b border-ruta-blue-line p-4">
               <View
-                className="h-12 w-12 items-center justify-center rounded-2xl"
+                className="h-12 w-12 items-center justify-center rounded-2xl border border-ruta-blue-line"
                 style={{ backgroundColor: COLORES_TIPO_VEHICULO[vehiculo.type].fondo }}
               >
                 <MaterialCommunityIcons
@@ -111,25 +133,27 @@ export default function PanelScreen() {
                 />
               </View>
               <View className="flex-1">
-                <Text className="text-[10px] font-bold uppercase tracking-[1.4px] text-white/75">
-                  En tu garaje
+                <Text className="text-[10px] font-bold uppercase tracking-[1.4px] text-ruta-blue">
+                  Estado de mantenimiento
                 </Text>
-                <Text className="mt-0.5 text-lg font-bold text-white" numberOfLines={1}>
+                <Text className="mt-0.5 text-lg font-bold text-ruta-navy" numberOfLines={1}>
                   {vehiculo.name}
                 </Text>
-                <Text className="text-xs text-white/75" numberOfLines={1}>
+                <Text className="text-xs text-ruta-blue-muted" numberOfLines={1}>
                   {[vehiculo.brand, vehiculo.model, vehiculo.year].filter(Boolean).join(' · ') ||
                     'Detalles por completar'}
                 </Text>
               </View>
               <View
-                className={`rounded-full px-3 py-1.5 ${
-                  estadoPendiente ? 'bg-ruta-clay-soft' : 'bg-white/15'
+                className={`rounded-full border px-3 py-1.5 ${
+                  estadoPendiente
+                    ? 'border-ruta-amber/30 bg-ruta-amber-soft'
+                    : 'border-ruta-success/20 bg-ruta-success-soft'
                 }`}
               >
                 <Text
                   className={`text-[11px] font-bold ${
-                    estadoPendiente ? 'text-ruta-clay-dark' : 'text-white'
+                    estadoPendiente ? 'text-[#B45309]' : 'text-ruta-success'
                   }`}
                 >
                   {etiquetaEstado}
@@ -139,48 +163,56 @@ export default function PanelScreen() {
 
             <View className="flex-row items-center justify-between p-4">
               <View>
-                <Text className="text-xs text-white/70">
+                <Text className="text-xs text-ruta-blue-muted">
                   {vehiculo.type === 'bicycle' ? 'Distancia actual' : 'Kilometraje actual'}
                 </Text>
-                <Text className="mt-1 text-2xl font-extrabold text-white">
+                <Text className="mt-1 text-2xl font-extrabold text-ruta-navy">
                   {distanciaDelVehiculo(vehiculo.type, vehiculo.current_km)}
                 </Text>
               </View>
               <TouchableOpacity
                 accessibilityRole="button"
-                className="min-h-11 flex-row items-center gap-2 rounded-xl bg-white px-4"
+                className="min-h-11 flex-row items-center gap-2 rounded-xl bg-ruta-blue-soft px-4"
                 onPress={() => router.push(`/(app)/vehiculo/${vehiculo.id}`)}
               >
-                <Text className="text-xs font-bold text-ruta-sage-dark">Ver detalle</Text>
-                <Ionicons name="arrow-forward" size={16} color="#36533C" />
+                <Text className="text-xs font-bold text-ruta-blue">Ver detalle</Text>
+                <Ionicons name="arrow-forward" size={16} color="#192841" />
               </TouchableOpacity>
             </View>
 
-            <View className="flex-row items-start gap-2 border-t border-white/15 bg-black/10 px-4 py-3">
-              <Ionicons name="construct-outline" size={16} color="#EAF0EB" />
-              <Text className="flex-1 text-xs leading-5 text-white/85">
+            <View className="flex-row items-start gap-2 border-t border-ruta-blue-line bg-[#F8FAFC] px-4 py-3">
+              <Ionicons name="construct-outline" size={16} color="#2563EB" />
+              <Text className="flex-1 text-xs leading-5 text-ruta-blue-muted">
                 {estadoServicio.motivo || 'Todavía no hay mantenimientos programados.'}
               </Text>
             </View>
+            <TouchableOpacity
+              accessibilityRole="button"
+              className="mx-4 mb-4 min-h-12 flex-row items-center justify-center gap-2 rounded-xl bg-ruta-navy-deep px-4"
+              onPress={registrarMantenimiento}
+            >
+              <Ionicons name="construct-outline" size={19} color="#FFFFFF" />
+              <Text className="text-sm font-bold text-white">Registrar mantenimiento</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           <View className="mb-5 items-center rounded-[26px] border border-ruta-line bg-ruta-surface px-6 py-8">
             {cargando ? (
-              <ActivityIndicator size="large" color="#4D6B53" />
+              <ActivityIndicator size="large" color="#2563EB" />
             ) : (
               <>
-                <View className="mb-4 h-16 w-16 items-center justify-center rounded-2xl bg-ruta-sage-soft">
-                  <MaterialCommunityIcons name="garage-variant" size={34} color="#4D6B53" />
+                <View className="mb-4 h-16 w-16 items-center justify-center rounded-2xl bg-ruta-blue-soft">
+                  <MaterialCommunityIcons name="garage-variant" size={34} color="#2563EB" />
                 </View>
-                <Text className="text-center text-lg font-bold text-ruta-ink">
+                <Text className="text-center text-lg font-bold text-ruta-navy">
                   Tu garaje empieza aquí
                 </Text>
-                <Text className="mt-2 text-center text-sm leading-5 text-ruta-muted">
+                <Text className="mt-2 text-center text-sm leading-5 text-ruta-blue-muted">
                   Agrega un vehículo para organizar sus datos y mantenimientos.
                 </Text>
                 <TouchableOpacity
                   accessibilityRole="button"
-                  className="mt-5 min-h-12 flex-row items-center justify-center gap-2 rounded-xl bg-ruta-sage px-5"
+                  className="mt-5 min-h-12 flex-row items-center justify-center gap-2 rounded-xl bg-ruta-navy-deep px-5"
                   onPress={agregarVehiculo}
                 >
                   <Ionicons name="add" size={20} color="#FFFFFF" />
@@ -199,25 +231,25 @@ export default function PanelScreen() {
 
         {vehiculo ? (
           <View className="mb-5 flex-row gap-3">
-            <View className="flex-1 rounded-2xl border border-ruta-line bg-ruta-surface p-4">
-              <View className="mb-3 h-9 w-9 items-center justify-center rounded-xl bg-ruta-sage-soft">
-                <Ionicons name="build-outline" size={19} color="#4D6B53" />
+            <View className="flex-1 rounded-2xl border border-ruta-blue-line bg-ruta-surface p-4">
+              <View className="mb-3 h-9 w-9 items-center justify-center rounded-xl bg-ruta-blue-soft">
+                <Ionicons name="build-outline" size={19} color="#2563EB" />
               </View>
-              <Text className="text-xl font-extrabold text-ruta-ink">{registros.length}</Text>
-              <Text className="mt-1 text-xs leading-4 text-ruta-muted">
+              <Text className="text-xl font-extrabold text-ruta-navy">{registros.length}</Text>
+              <Text className="mt-1 text-xs leading-4 text-ruta-blue-muted">
                 {registros.length === 1 ? 'mantenimiento registrado' : 'mantenimientos registrados'}
               </Text>
             </View>
             <TouchableOpacity
               accessibilityRole="button"
-              className="flex-1 rounded-2xl border border-ruta-line bg-ruta-surface p-4"
+              className="flex-1 rounded-2xl border border-ruta-blue-line bg-ruta-surface p-4"
               onPress={() => router.push(`/(app)/vehiculo/${vehiculo.id}`)}
             >
-              <View className="mb-3 h-9 w-9 items-center justify-center rounded-xl bg-ruta-clay-soft">
-                <Ionicons name="time-outline" size={19} color="#984629" />
+              <View className="mb-3 h-9 w-9 items-center justify-center rounded-xl bg-ruta-amber-soft">
+                <Ionicons name="time-outline" size={19} color="#B45309" />
               </View>
-              <Text className="text-sm font-bold text-ruta-ink">Historial</Text>
-              <Text className="mt-1 text-xs leading-4 text-ruta-muted">Ver el detalle del vehículo</Text>
+              <Text className="text-sm font-bold text-ruta-navy">Historial</Text>
+              <Text className="mt-1 text-xs leading-4 text-ruta-blue-muted">Ver el detalle del vehículo</Text>
             </TouchableOpacity>
           </View>
         ) : null}
@@ -225,24 +257,24 @@ export default function PanelScreen() {
         <View className="mb-5">
           <View className="mb-3 flex-row items-center justify-between">
             <View>
-              <Text className="text-base font-bold text-ruta-ink">Acciones rápidas</Text>
-              <Text className="mt-0.5 text-xs text-ruta-muted">Continúa donde lo necesitas</Text>
+              <Text className="text-base font-bold text-ruta-navy">Acciones rápidas</Text>
+              <Text className="mt-0.5 text-xs text-ruta-blue-muted">Continúa donde lo necesitas</Text>
             </View>
           </View>
           <View className="flex-row gap-3">
             <TouchableOpacity
               accessibilityRole="button"
-              className="min-h-[104px] flex-1 items-center justify-center rounded-2xl border border-ruta-line bg-ruta-surface px-3 py-4"
+              className="min-h-[104px] flex-1 items-center justify-center rounded-2xl border border-ruta-blue-line bg-ruta-surface px-3 py-4"
               onPress={() => router.push('/(app)/mis-vehiculos')}
             >
-              <View className="mb-2 h-10 w-10 items-center justify-center rounded-xl bg-ruta-sage-soft">
-                <Ionicons name="car-outline" size={21} color="#36533C" />
+              <View className="mb-2 h-10 w-10 items-center justify-center rounded-xl bg-ruta-blue-soft">
+                <Ionicons name="car-outline" size={21} color="#2563EB" />
               </View>
-              <Text className="text-center text-sm font-bold text-ruta-ink">Mis vehículos</Text>
+              <Text className="text-center text-sm font-bold text-ruta-navy">Mis vehículos</Text>
             </TouchableOpacity>
             <TouchableOpacity
               accessibilityRole="button"
-              className="min-h-[104px] flex-1 items-center justify-center rounded-2xl bg-ruta-sage px-3 py-4"
+              className="min-h-[104px] flex-1 items-center justify-center rounded-2xl bg-ruta-navy-deep px-3 py-4"
               onPress={agregarVehiculo}
             >
               <View className="mb-2 h-10 w-10 items-center justify-center rounded-xl bg-white/15">
@@ -253,29 +285,75 @@ export default function PanelScreen() {
           </View>
         </View>
 
+        {vehiculos.length > 0 ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerClassName="items-center gap-2 py-2"
+            className="mb-2"
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityState={{ selected: tipoSeleccionado === 'todos' }}
+              className={`rounded-full border px-3.5 py-2 ${
+                tipoSeleccionado === 'todos'
+                  ? 'border-ruta-navy-deep bg-ruta-navy-deep'
+                  : 'border-ruta-blue-line bg-white'
+              }`}
+              onPress={() => setTipoSeleccionado('todos')}
+            >
+              <Text className={`text-xs font-bold ${tipoSeleccionado === 'todos' ? 'text-white' : 'text-ruta-navy'}`}>
+                Todos · {vehiculos.length}
+              </Text>
+            </TouchableOpacity>
+            {TIPOS_VEHICULOS.map((tipo) => {
+              const activo = tipoSeleccionado === tipo.valor;
+              const cantidad = vehiculos.filter((item) => item.type === tipo.valor).length;
+              return (
+                <TouchableOpacity
+                  key={tipo.valor}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: activo }}
+                  className={`rounded-full border px-3.5 py-2 ${
+                    activo
+                      ? 'border-ruta-navy-deep bg-ruta-navy-deep'
+                      : 'border-ruta-blue-line bg-white'
+                  }`}
+                  onPress={() => setTipoSeleccionado(tipo.valor)}
+                >
+                  <Text className={`text-xs font-bold ${activo ? 'text-white' : 'text-ruta-navy'}`}>
+                    {tipo.etiqueta} · {cantidad}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        ) : null}
+
         <View className="mb-1 flex-row items-center justify-between">
           <View>
-            <Text className="text-base font-bold text-ruta-ink">Tu garaje</Text>
-            <Text className="mt-0.5 text-xs text-ruta-muted">
-              {vehiculos.length} {vehiculos.length === 1 ? 'vehículo configurado' : 'vehículos configurados'}
+            <Text className="text-base font-bold text-ruta-navy">Tu garaje</Text>
+            <Text className="mt-0.5 text-xs text-ruta-blue-muted">
+              {vehiculosFiltrados.length}{' '}
+              {vehiculosFiltrados.length === 1 ? 'vehículo configurado' : 'vehículos configurados'}
             </Text>
           </View>
-          {vehiculos.length > 0 ? (
+          {vehiculosFiltrados.length > 0 ? (
             <TouchableOpacity
               accessibilityRole="link"
               className="flex-row items-center gap-1 px-2 py-2"
               onPress={abrirGaraje}
             >
-              <Text className="text-xs font-bold text-ruta-sage-dark">Ver garaje</Text>
-              <Ionicons name="chevron-forward" size={16} color="#36533C" />
+              <Text className="text-xs font-bold text-ruta-blue">Ver garaje</Text>
+              <Ionicons name="chevron-forward" size={16} color="#2563EB" />
             </TouchableOpacity>
           ) : null}
         </View>
-        {vehiculos.slice(0, 3).map((item) => (
+        {vehiculosFiltrados.slice(0, 3).map((item) => (
           <TouchableOpacity
             key={item.id}
             accessibilityRole="button"
-            className="mt-2 flex-row items-center gap-3 rounded-xl border border-ruta-line bg-ruta-surface p-3"
+            className="mt-2 flex-row items-center gap-3 rounded-xl border border-ruta-blue-line bg-ruta-surface p-3"
             onPress={() => router.push(`/(app)/vehiculo/${item.id}`)}
           >
             <View
@@ -289,24 +367,24 @@ export default function PanelScreen() {
               />
             </View>
             <View className="flex-1">
-              <Text className="text-sm font-semibold text-ruta-ink" numberOfLines={1}>
+              <Text className="text-sm font-semibold text-ruta-navy" numberOfLines={1}>
                 {item.name}
               </Text>
-              <Text className="mt-0.5 text-xs text-ruta-muted">
+              <Text className="mt-0.5 text-xs text-ruta-blue-muted">
                 {distanciaDelVehiculo(item.type, item.current_km)}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={17} color="#686E69" />
           </TouchableOpacity>
         ))}
-        {vehiculos.length > 3 ? (
+        {vehiculosFiltrados.length > 3 ? (
           <TouchableOpacity
             accessibilityRole="link"
-            className="mt-3 min-h-11 items-center justify-center rounded-xl border border-ruta-line bg-ruta-surface"
+            className="mt-3 min-h-11 items-center justify-center rounded-xl border border-ruta-blue-line bg-ruta-surface"
             onPress={() => router.push('/(app)/mis-vehiculos')}
           >
-            <Text className="text-sm font-semibold text-ruta-sage-dark">
-              Ver los {vehiculos.length - 3} vehículos restantes
+            <Text className="text-sm font-semibold text-ruta-blue">
+              Ver los {vehiculosFiltrados.length - 3} vehículos restantes
             </Text>
           </TouchableOpacity>
         ) : null}

@@ -1,27 +1,47 @@
 import React from 'react';
-import { ActivityIndicator, Text, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
+import { Texto as Text } from '@/components/ui/Texto';
 
 interface PropiedadesBotonGoogle {
   onPress: () => void;
   cargando?: boolean;
+  variante?: 'base' | 'oficial';
 }
 
-export function BotonGoogle({ onPress, cargando = false }: PropiedadesBotonGoogle) {
+export function BotonGoogle({
+  onPress,
+  cargando = false,
+  variante = 'base',
+}: PropiedadesBotonGoogle) {
+  const estiloOficial = variante === 'oficial';
+
   return (
     <TouchableOpacity
-      className="w-full flex-row items-center justify-center gap-3 rounded-xl border border-slate-300 bg-white py-3.5 active:bg-slate-50"
+      className={`min-h-[52px] w-full flex-row items-center justify-center gap-3 border bg-ruta-surface py-3.5 active:bg-ruta-canvas ${
+        estiloOficial
+          ? 'rounded-full border-ruta-blue-line shadow-sm shadow-ruta-navy/5'
+          : 'rounded-xl border-ruta-line'
+      }`}
       onPress={onPress}
       disabled={cargando}
       accessibilityRole="button"
       accessibilityLabel="Continuar con Google"
-      activeOpacity={0.75}
+      activeOpacity={0.8}
     >
       {cargando ? (
-        <ActivityIndicator color="#2563EB" />
+        <ActivityIndicator color="#5D705E" />
       ) : (
         <>
-          <Text className="text-xl font-bold text-blue-600">G</Text>
-          <Text className="text-base font-semibold text-slate-700">Continuar con Google</Text>
+          <View className="h-7 w-7 items-center justify-center rounded-full border border-[#E8E8E1] bg-white">
+            <Text className="text-base font-extrabold text-[#4285F4]">G</Text>
+          </View>
+          <Text
+            className={`text-ruta-ink ${
+              estiloOficial ? 'text-[15.5px] font-bold' : 'text-sm font-semibold'
+            }`}
+          >
+            Continuar con Google
+          </Text>
         </>
       )}
     </TouchableOpacity>

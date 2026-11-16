@@ -1,76 +1,105 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
-  Text,
   TextInput,
   TextInputProps,
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Texto as Text } from '@/components/ui/Texto';
 
 interface PropiedadesEntradaTexto extends TextInputProps {
-  etiqueta: string;
+  etiqueta?: string;
   error?: string;
   textoAyuda?: string;
+  icono?: keyof typeof Ionicons.glyphMap;
+  variante?: 'base' | 'oficial';
 }
 
 export function EntradaTexto({
   etiqueta,
   error,
   textoAyuda,
+  icono,
+  variante = 'base',
   className = '',
   secureTextEntry = false,
+  onFocus,
+  onBlur,
+  multiline,
   ...resto
 }: PropiedadesEntradaTexto) {
-  const [mostrarContrasena, setMostrarContrasena] = React.useState(false);
-  let claseInput = 'bg-slate-50 border rounded-xl px-4 py-3 text-slate-900 text-base';
+  const [mostrarContrasena, setMostrarContrasena] = useState(false);
+  const [enfocado, setEnfocado] = useState(false);
+  const estiloOficial = variante === 'oficial';
 
-  if (error) {
-    claseInput += ' border-red-500 bg-red-50/50';
-  } else {
-    claseInput += ' border-slate-300 focus:border-blue-500';
-  }
+  const claseContenedor = error
+    ? 'border-ruta-clay bg-ruta-clay-soft'
+    : enfocado
+      ? estiloOficial
+        ? 'border-ruta-blue bg-ruta-surface'
+        : 'border-ruta-sage bg-ruta-surface'
+      : estiloOficial
+        ? 'border-ruta-blue-line bg-ruta-blue-input'
+        : 'border-ruta-line bg-ruta-surface';
 
   return (
-    <View className="mb-4 w-full">
-      <Text className="text-sm font-semibold text-slate-700 mb-1.5">{etiqueta}</Text>
-      {secureTextEntry ? (
-        <View
-          className={`flex-row items-center rounded-xl border bg-slate-50 px-4 ${
-            error ? 'border-red-500 bg-red-50/50' : 'border-slate-300'
-          }`}
-        >
-          <TextInput
-            className={`flex-1 py-3 text-base text-slate-900 ${className}`.trim()}
-            placeholderTextColor="#94A3B8"
-            secureTextEntry={!mostrarContrasena}
-            {...resto}
+    <View className={`w-full ${estiloOficial ? 'mb-3.5' : 'mb-4'}`}>
+      {etiqueta ? (
+        <Text className="mb-1.5 text-[13px] font-semibold text-ruta-ink">{etiqueta}</Text>
+      ) : null}
+
+      <View
+        className={`flex-row items-center border px-3.5 ${
+          estiloOficial ? 'min-h-[52px] rounded-2xl' : 'rounded-xl'
+        } ${claseContenedor}`}
+      >
+        {icono ? (
+          <Ionicons
+            name={icono}
+            size={19}
+            color={enfocado ? (estiloOficial ? '#2563EB' : '#4D6B53') : estiloOficial ? '#192841' : '#727972'}
+            style={{ marginRight: 10 }}
           />
+        ) : null}
+
+        <TextInput
+          className={`flex-1 py-3.5 font-ruta text-base text-ruta-ink ${className}`.trim()}
+          placeholderTextColor={estiloOficial ? '#7F91A4' : '#727972'}
+          secureTextEntry={secureTextEntry ? !mostrarContrasena : false}
+          multiline={multiline}
+          textAlignVertical={multiline ? 'top' : 'center'}
+          onFocus={(event) => {
+            setEnfocado(true);
+            onFocus?.(event);
+          }}
+          onBlur={(event) => {
+            setEnfocado(false);
+            onBlur?.(event);
+          }}
+          {...resto}
+        />
+
+        {secureTextEntry ? (
           <TouchableOpacity
             onPress={() => setMostrarContrasena((visible) => !visible)}
             accessibilityRole="button"
             accessibilityLabel={mostrarContrasena ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-            hitSlop={8}
+            hitSlop={10}
           >
             <Ionicons
               name={mostrarContrasena ? 'eye-off-outline' : 'eye-outline'}
-              size={22}
-              color="#64748B"
+              size={21}
+              color="#727972"
             />
           </TouchableOpacity>
-        </View>
-      ) : (
-        <TextInput
-          className={`${claseInput} ${className}`.trim()}
-          placeholderTextColor="#94A3B8"
-          secureTextEntry={false}
-          {...resto}
-        />
-      )}
+        ) : null}
+      </View>
+
       {error ? (
-        <Text className="text-red-500 text-xs mt-1.5 font-medium">{error}</Text>
+        <Text className="mt-1.5 text-xs font-medium text-ruta-clay-dark">{error}</Text>
       ) : textoAyuda ? (
-        <Text className="text-slate-500 text-xs mt-1.5">{textoAyuda}</Text>
+        <Text className="mt-1.5 text-xs text-ruta-muted">{textoAyuda}</Text>
       ) : null}
     </View>
   );

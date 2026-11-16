@@ -32,7 +32,7 @@ export function NavegacionInferior({ activa }: NavegacionInferiorProps) {
 
   return (
     <View
-      className="flex-row border-t border-ruta-line bg-ruta-surface px-3 pt-2"
+      className="flex-row border-t border-ruta-blue-line bg-white px-3 pt-2"
       style={{ paddingBottom: Math.max(insets.bottom, 8) }}
     >
       {SECCIONES.map((seccion) => {
@@ -44,9 +44,7 @@ export function NavegacionInferior({ activa }: NavegacionInferiorProps) {
             accessibilityRole="button"
             accessibilityState={{ selected: seleccionada }}
             accessibilityLabel={seccion.etiqueta}
-            className={`min-h-12 flex-1 items-center justify-center gap-0.5 rounded-xl ${
-              seleccionada ? 'bg-ruta-sage-soft' : ''
-            }`}
+            className="min-h-12 flex-1 items-center justify-center gap-0.5"
             onPress={() => {
               if (!seleccionada) router.replace(seccion.ruta);
             }}
@@ -54,11 +52,11 @@ export function NavegacionInferior({ activa }: NavegacionInferiorProps) {
             <Ionicons
               name={seccion.icono}
               size={20}
-              color={seleccionada ? '#36533C' : '#686E69'}
+              color={seleccionada ? '#2563EB' : '#94A3B8'}
             />
             <Text
               className={`text-[10px] ${
-                seleccionada ? 'font-bold text-ruta-sage-dark' : 'font-medium text-ruta-muted'
+                seleccionada ? 'font-bold text-ruta-blue' : 'font-medium text-[#94A3B8]'
               }`}
             >
               {seccion.etiqueta}

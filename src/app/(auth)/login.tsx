@@ -5,13 +5,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Image as ExpoImage } from 'expo-image';
 import { withUniwind } from 'uniwind';
 import { useAuth } from '@/context/AuthProvider';
 import { EntradaTexto } from '@/components/ui/EntradaTexto';
-import { Boton } from '@/components/ui/Boton';
 import { BotonGoogle } from '@/components/ui/BotonGoogle';
 import { Pantalla } from '@/components/ui/Pantalla';
 import { Texto as Text } from '@/components/ui/Texto';
@@ -26,6 +26,7 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [recordarme, setRecordarme] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -63,103 +64,158 @@ export default function LoginScreen() {
   };
 
   return (
-    <Pantalla className="bg-ruta-sage-dark">
+    <Pantalla className="bg-[#DFEEFC]">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1"
       >
-      <ScrollView
-        contentContainerClassName="flex-grow"
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        <View className="bg-ruta-sage-dark px-5 pb-12 pt-5">
-          <View className="mb-9 flex-row items-center gap-3">
-            <View className="h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/10">
-              <MaterialCommunityIcons name="map-marker-path" size={27} color="#FFFFFF" />
+        <ScrollView
+          contentContainerClassName="flex-grow"
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="flex-1 bg-[#F8FBFF]">
+            <View className="relative px-6 pt-5">
+              <View className="absolute right-7 top-3 gap-2 opacity-35">
+                {[0, 1, 2, 3].map((row) => (
+                  <View key={row} className="flex-row gap-2">
+                    {[0, 1, 2, 3].map((dot) => (
+                      <View key={dot} className="h-1.5 w-1.5 rounded-full bg-[#3B82F6]" />
+                    ))}
+                  </View>
+                ))}
+              </View>
+              <View className="items-center">
+                <View className="flex-row items-center gap-2.5">
+                  <View className="relative h-11 w-11 items-center justify-center rounded-full bg-ruta-navy">
+                    <MaterialCommunityIcons name="car-side" size={24} color="#FFFFFF" />
+                    <View className="absolute bottom-2 h-[2px] w-5 rounded-full bg-ruta-amber" />
+                  </View>
+                  <Text className="text-[38px] font-extrabold leading-none tracking-tight text-ruta-navy">
+                    Ruta<Text className="text-ruta-blue">Fix</Text>
+                  </Text>
+                </View>
+                <Text className="mt-2 text-center text-[14px] font-medium text-ruta-blue-muted">
+                  Tu vehículo, siempre en buenas manos
+                </Text>
+                <View className="mt-1 h-[2px] w-32 rounded-full bg-ruta-amber" />
+              </View>
             </View>
-            <View className="flex-row items-baseline">
-              <Text className="text-[27px] font-extrabold tracking-tight text-white">RutaFix</Text>
-            </View>
-          </View>
-          <Text className="text-[27px] font-bold leading-9 text-white">
-            Tu vehículo, siempre en buenas manos.
-          </Text>
-          <Text className="mt-2 text-sm leading-6 text-white/75">
-            Gestiona el mantenimiento de tu vehículo y mantén cada viaje en el camino.
-          </Text>
-          <View className="mt-5 h-[178px] overflow-hidden rounded-[22px] bg-ruta-surface">
+
+            <View className="h-[225px] w-full px-2">
             <Image
               source={require('../../../assets/images/hero.png')}
               contentFit="contain"
               transition={180}
               className="h-full w-full"
             />
-          </View>
-        </View>
-
-        <View className="-mt-7 flex-1 rounded-t-[30px] bg-ruta-surface px-5 pb-8 pt-7">
-          <Text className="text-[22px] font-bold text-ruta-ink">Bienvenido a RutaFix</Text>
-          <Text className="mb-5 mt-1 text-xs leading-5 text-ruta-muted">
-            Inicia sesión para continuar
-          </Text>
-
-          {errorMessage ? (
-            <View className="mb-4 flex-row items-center gap-2 rounded-xl border border-ruta-clay/30 bg-ruta-clay-soft p-3.5">
-              <Ionicons name="alert-circle-outline" size={19} color="#984629" />
-              <Text className="flex-1 text-xs font-medium text-ruta-clay-dark">{errorMessage}</Text>
             </View>
-          ) : null}
 
-          <BotonGoogle onPress={handleGoogleLogin} cargando={loading} />
+            <View className="-mt-7 flex-1 rounded-t-[36px] bg-white px-7 pb-8 pt-3.5 shadow-lg shadow-ruta-navy/10">
+              <View className="mb-4 h-1 w-11 self-center rounded-full bg-ruta-blue-line" />
+              <View className="mb-5 items-center">
+                <Text className="text-center text-[25px] font-extrabold tracking-tight text-ruta-navy">
+                  ¡Bienvenido a RutaFix!
+                </Text>
+                <Text className="mt-1 text-center text-sm text-ruta-blue-muted">
+                  Ingresa a tu cuenta para continuar
+                </Text>
+              </View>
 
-          <View className="my-5 flex-row items-center">
-            <View className="h-px flex-1 bg-ruta-line" />
-            <Text className="mx-3 text-xs font-medium text-ruta-muted">
-              O continúa con tu correo
-            </Text>
-            <View className="h-px flex-1 bg-ruta-line" />
+              {errorMessage ? (
+                <View className="mb-4 flex-row items-center gap-2 rounded-xl border border-ruta-clay/30 bg-ruta-clay-soft p-3.5">
+                  <Ionicons name="alert-circle-outline" size={19} color="#984629" />
+                  <Text className="flex-1 text-xs font-medium text-ruta-clay-dark">{errorMessage}</Text>
+                </View>
+              ) : null}
+
+              <BotonGoogle onPress={handleGoogleLogin} cargando={loading} variante="oficial" />
+
+              <View className="my-4 flex-row items-center">
+                <View className="h-px flex-1 bg-ruta-blue-line" />
+                <Text className="mx-3 text-[13px] font-medium text-[#7E8F9E]">
+                  O continúa con tu correo
+                </Text>
+                <View className="h-px flex-1 bg-ruta-blue-line" />
+              </View>
+
+              <EntradaTexto
+                variante="oficial"
+                placeholder="Correo electrónico"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                icono="mail"
+              />
+
+              <EntradaTexto
+                variante="oficial"
+                placeholder="Contraseña"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                icono="lock-closed"
+              />
+
+              <View className="mb-4 mt-1 flex-row items-center justify-between">
+                <TouchableOpacity
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: recordarme }}
+                  className="flex-row items-center gap-2.5"
+                  onPress={() => setRecordarme((checked) => !checked)}
+                >
+                  <View
+                    className={`h-4 w-4 items-center justify-center rounded border ${
+                      recordarme ? 'border-ruta-blue bg-ruta-blue' : 'border-[#BAC7D5] bg-white'
+                    }`}
+                  >
+                    {recordarme ? <Ionicons name="checkmark" size={12} color="#FFFFFF" /> : null}
+                  </View>
+                  <Text className="text-[13.5px] font-medium text-ruta-navy">Recordarme</Text>
+                </TouchableOpacity>
+                <Text className="text-right text-[13px] font-semibold text-ruta-blue">
+                  ¿Olvidaste tu contraseña?
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                accessibilityRole="button"
+                className={`min-h-[56px] flex-row items-center justify-center gap-2.5 rounded-full bg-ruta-navy px-5 shadow-lg shadow-ruta-navy/30 ${
+                  loading ? 'opacity-70' : ''
+                }`}
+                onPress={() => void handleLogin()}
+                disabled={loading}
+                activeOpacity={0.85}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <>
+                    <Text className="text-base font-bold text-white">Iniciar sesión</Text>
+                    <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+                  </>
+                )}
+              </TouchableOpacity>
+
+              <View className="mb-1 mt-5 flex-row items-center justify-center">
+                <Text className="text-sm text-[#34465E]">¿Aún no tienes una cuenta? </Text>
+                <TouchableOpacity
+                  accessibilityRole="link"
+                  onPress={() => router.push('/(auth)/register')}
+                >
+                  <Text className="text-sm font-bold text-ruta-blue underline">Regístrate</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View className="relative -mt-4 h-10 overflow-hidden bg-[#B2D2F4]/80">
+              <View className="absolute -top-4 h-10 w-[115%] rounded-[50%] bg-[#C5DEF8]/80" />
+              <View className="absolute -top-2 left-[-10%] h-10 w-[120%] rounded-[50%] border-t-2 border-ruta-amber" />
+            </View>
           </View>
-
-          <EntradaTexto
-            etiqueta="Correo electrónico"
-            placeholder="ejemplo@correo.com"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            icono="mail-outline"
-          />
-
-          <EntradaTexto
-            etiqueta="Contraseña"
-            placeholder="••••••••"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            icono="lock-closed-outline"
-          />
-
-          <Boton
-            titulo="Iniciar sesión"
-            onPress={handleLogin}
-            cargando={loading}
-            icono="arrow-forward"
-            clasePersonalizada="mt-1"
-          />
-          <View className="mt-6 flex-row items-center justify-center">
-            <Text className="text-sm text-ruta-muted">¿No tienes una cuenta? </Text>
-            <TouchableOpacity
-              accessibilityRole="link"
-              onPress={() => router.push('/(auth)/register')}
-            >
-              <Text className="text-sm font-bold text-ruta-sage-dark">Regístrate</Text>
-            </TouchableOpacity>
-          </View>
-
-        </View>
-      </ScrollView>
+        </ScrollView>
       </KeyboardAvoidingView>
     </Pantalla>
   );
