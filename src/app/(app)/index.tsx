@@ -340,8 +340,6 @@ export default function VehiclesListScreen() {
               <View>
                 <Text className="text-sm font-extrabold tracking-tight text-ruta-navy">
                   Ruta<Text className="text-ruta-blue">Fix</Text>
-                  <Text className="text-[#F59E0B]"> • </Text>
-                  <Text className="font-semibold text-ruta-blue-muted">Garaje</Text>
                 </Text>
                 <Text className="mt-0.5 max-w-56 text-xs text-ruta-blue-muted" numberOfLines={1}>
                   {user?.email || 'Tu espacio para lo que te mueve'}
@@ -351,17 +349,8 @@ export default function VehiclesListScreen() {
             <BotonCerrarSesion />
           </View>
           <View className="mt-5">
-            <View className="mb-2 self-start flex-row items-center gap-2 rounded-full border border-[#DBEAFE] bg-[#EFF6FF] px-3 py-1.5">
-              <View className="h-1.5 w-1.5 rounded-full bg-ruta-blue" />
-              <Text className="text-[11px] font-bold uppercase tracking-wide text-ruta-blue">
-                Panel de control
-              </Text>
-            </View>
             <Text className="text-[28px] font-extrabold leading-[34px] tracking-tight text-ruta-navy-deep">
-              ¡Hola! Tu garaje te espera.
-            </Text>
-            <Text className="mt-1 text-[13.5px] leading-5 text-ruta-blue-muted">
-              Monitorea el kilometraje y mantenimiento de cada vehículo al instante.
+              Garaje
             </Text>
           </View>
           <View className="mt-4">
