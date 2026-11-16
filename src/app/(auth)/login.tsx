@@ -8,17 +8,18 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Image as ExpoImage } from 'expo-image';
-import { withUniwind } from 'uniwind';
 import { useAuth } from '@/context/AuthProvider';
 import { EntradaTexto } from '@/components/ui/EntradaTexto';
 import { BotonGoogle } from '@/components/ui/BotonGoogle';
 import { Pantalla } from '@/components/ui/Pantalla';
 import { Texto as Text } from '@/components/ui/Texto';
 import { iniciarSesionConGoogle } from '@/services/googleAuth.service';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-
-const Image = withUniwind(ExpoImage);
+import { Ionicons } from '@expo/vector-icons';
+import {
+  EncabezadoAutenticacion,
+  IlustracionAutenticacion,
+  OlasAutenticacion,
+} from '@/components/auth/AutenticacionVisual';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -75,41 +76,8 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View className="flex-1 bg-[#F8FBFF]">
-            <View className="relative px-6 pt-5">
-              <View className="absolute right-7 top-3 gap-2 opacity-35">
-                {[0, 1, 2, 3].map((row) => (
-                  <View key={row} className="flex-row gap-2">
-                    {[0, 1, 2, 3].map((dot) => (
-                      <View key={dot} className="h-1.5 w-1.5 rounded-full bg-[#3B82F6]" />
-                    ))}
-                  </View>
-                ))}
-              </View>
-              <View className="items-center">
-                <View className="flex-row items-center gap-2.5">
-                  <View className="relative h-11 w-11 items-center justify-center rounded-full bg-ruta-navy">
-                    <MaterialCommunityIcons name="car-side" size={24} color="#FFFFFF" />
-                    <View className="absolute bottom-2 h-[2px] w-5 rounded-full bg-ruta-amber" />
-                  </View>
-                  <Text className="text-[38px] font-extrabold leading-none tracking-tight text-ruta-navy">
-                    Ruta<Text className="text-ruta-blue">Fix</Text>
-                  </Text>
-                </View>
-                <Text className="mt-2 text-center text-[14px] font-medium text-ruta-blue-muted">
-                  Tu vehículo, siempre en buenas manos
-                </Text>
-                <View className="mt-1 h-[2px] w-32 rounded-full bg-ruta-amber" />
-              </View>
-            </View>
-
-            <View className="h-[225px] w-full px-2">
-            <Image
-              source={require('../../../assets/images/hero.png')}
-              contentFit="contain"
-              transition={180}
-              className="h-full w-full"
-            />
-            </View>
+            <EncabezadoAutenticacion />
+            <IlustracionAutenticacion />
 
             <View className="-mt-7 flex-1 rounded-t-[36px] bg-white px-7 pb-8 pt-3.5 shadow-lg shadow-ruta-navy/10">
               <View className="mb-4 h-1 w-11 self-center rounded-full bg-ruta-blue-line" />
@@ -175,9 +143,15 @@ export default function LoginScreen() {
                   </View>
                   <Text className="text-[13.5px] font-medium text-ruta-navy">Recordarme</Text>
                 </TouchableOpacity>
-                <Text className="text-right text-[13px] font-semibold text-ruta-blue">
-                  ¿Olvidaste tu contraseña?
-                </Text>
+                <TouchableOpacity
+                  accessibilityRole="link"
+                  onPress={() => router.push('/(auth)/forgot-password')}
+                  hitSlop={8}
+                >
+                  <Text className="text-right text-[13px] font-semibold text-ruta-blue">
+                    ¿Olvidaste tu contraseña?
+                  </Text>
+                </TouchableOpacity>
               </View>
 
               <TouchableOpacity
@@ -210,10 +184,7 @@ export default function LoginScreen() {
               </View>
             </View>
 
-            <View className="relative -mt-4 h-10 overflow-hidden bg-[#B2D2F4]/80">
-              <View className="absolute -top-4 h-10 w-[115%] rounded-[50%] bg-[#C5DEF8]/80" />
-              <View className="absolute -top-2 left-[-10%] h-10 w-[120%] rounded-[50%] border-t-2 border-ruta-amber" />
-            </View>
+            <OlasAutenticacion />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -568,13 +568,13 @@ export default function VehiclesListScreen() {
         animationType="fade"
         onRequestClose={() => setSignOutVisible(false)}
       >
-        <View className="flex-1 justify-center bg-ruta-ink/35 px-6">
-          <View className="rounded-2xl border border-ruta-line bg-ruta-surface p-6 shadow-xl shadow-[#242725]/10">
-            <View className="mb-4 h-14 w-14 items-center justify-center rounded-xl bg-ruta-clay-soft">
-              <Ionicons name="log-out-outline" size={26} color="#984629" />
+        <View className="flex-1 justify-center bg-[#0F172A]/55 px-6">
+          <View className="w-full max-w-sm self-center rounded-[28px] border border-ruta-blue-line bg-white p-6 shadow-2xl shadow-ruta-navy/20">
+            <View className="mb-4 h-14 w-14 items-center justify-center rounded-2xl border border-ruta-blue-line bg-ruta-blue-soft">
+              <Ionicons name="log-out-outline" size={25} color="#2563EB" />
             </View>
-            <Text className="text-2xl font-bold text-ruta-ink">¿Nos vemos pronto?</Text>
-            <Text className="mt-2 text-sm leading-5 text-ruta-muted">
+            <Text className="text-[22px] font-extrabold text-ruta-navy">¿Cerrar sesión?</Text>
+            <Text className="mt-2 text-sm leading-5 text-ruta-blue-muted">
               Tu garaje estará aquí cuando regreses.
             </Text>
             {signOutError ? (
@@ -585,15 +585,15 @@ export default function VehiclesListScreen() {
             <View className="mt-6 flex-row gap-3">
               <TouchableOpacity
                 accessibilityRole="button"
-                className="min-h-[52px] flex-1 items-center justify-center rounded-xl bg-ruta-inset py-3.5"
+                className="min-h-[52px] flex-1 items-center justify-center rounded-xl border border-ruta-blue-line bg-[#F1F5F9] py-3.5"
                 onPress={() => setSignOutVisible(false)}
                 disabled={signOutLoading}
               >
-                <Text className="text-sm font-semibold text-ruta-ink">Me quedo</Text>
+                <Text className="text-sm font-semibold text-ruta-navy">Cancelar</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 accessibilityRole="button"
-                className={`min-h-[52px] flex-1 items-center justify-center rounded-xl bg-ruta-clay-dark py-3.5 ${
+                className={`min-h-[52px] flex-1 items-center justify-center rounded-xl bg-ruta-navy-deep py-3.5 ${
                   signOutLoading ? 'opacity-70' : ''
                 }`}
                 onPress={() => void confirmSignOut()}

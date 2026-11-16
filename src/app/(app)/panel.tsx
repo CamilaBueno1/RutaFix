@@ -1,6 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, TouchableOpacity, View } from 'react-native';
 import { NavegacionInferior } from '@/components/ui/NavegacionInferior';
 import { Pantalla } from '@/components/ui/Pantalla';
@@ -9,8 +9,6 @@ import { useAuth } from '@/context/AuthProvider';
 import { useMantenimiento } from '@/hooks/useMantenimiento';
 import { useVehiculos } from '@/hooks/useVehiculos';
 import { COLORES_TIPO_VEHICULO, ICONOS_TIPO_VEHICULO } from '@/components/vehiculos/TarjetaVehiculo';
-import { TIPOS_VEHICULOS } from '@/services/vehiculos.service';
-import type { TipoVehiculo } from '@/types/database.types';
 
 function distanciaDelVehiculo(
   tipo: 'car' | 'motorcycle' | 'bicycle' | 'scooter',
@@ -26,11 +24,6 @@ export default function PanelScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { vehiculos, cargando, error, recargar } = useVehiculos();
-  const [tipoSeleccionado, setTipoSeleccionado] = useState<TipoVehiculo | 'todos'>('todos');
-  const vehiculosFiltrados =
-    tipoSeleccionado === 'todos'
-      ? vehiculos
-      : vehiculos.filter((item) => item.type === tipoSeleccionado);
   const vehiculo = vehiculos[0];
   const distancia = vehiculo?.type === 'bicycle' && vehiculo.current_km === 0
     ? null
@@ -265,12 +258,12 @@ export default function PanelScreen() {
             <TouchableOpacity
               accessibilityRole="button"
               className="min-h-[104px] flex-1 items-center justify-center rounded-2xl border border-ruta-blue-line bg-ruta-surface px-3 py-4"
-              onPress={() => router.push('/(app)/mis-vehiculos')}
+              onPress={abrirGaraje}
             >
               <View className="mb-2 h-10 w-10 items-center justify-center rounded-xl bg-ruta-blue-soft">
                 <Ionicons name="car-outline" size={21} color="#2563EB" />
               </View>
-              <Text className="text-center text-sm font-bold text-ruta-navy">Mis vehículos</Text>
+              <Text className="text-center text-sm font-bold text-ruta-navy">Ver garaje</Text>
             </TouchableOpacity>
             <TouchableOpacity
               accessibilityRole="button"
@@ -285,109 +278,6 @@ export default function PanelScreen() {
           </View>
         </View>
 
-        {vehiculos.length > 0 ? (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerClassName="items-center gap-2 py-2"
-            className="mb-2"
-          >
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessibilityState={{ selected: tipoSeleccionado === 'todos' }}
-              className={`rounded-full border px-3.5 py-2 ${
-                tipoSeleccionado === 'todos'
-                  ? 'border-ruta-navy-deep bg-ruta-navy-deep'
-                  : 'border-ruta-blue-line bg-white'
-              }`}
-              onPress={() => setTipoSeleccionado('todos')}
-            >
-              <Text className={`text-xs font-bold ${tipoSeleccionado === 'todos' ? 'text-white' : 'text-ruta-navy'}`}>
-                Todos · {vehiculos.length}
-              </Text>
-            </TouchableOpacity>
-            {TIPOS_VEHICULOS.map((tipo) => {
-              const activo = tipoSeleccionado === tipo.valor;
-              const cantidad = vehiculos.filter((item) => item.type === tipo.valor).length;
-              return (
-                <TouchableOpacity
-                  key={tipo.valor}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: activo }}
-                  className={`rounded-full border px-3.5 py-2 ${
-                    activo
-                      ? 'border-ruta-navy-deep bg-ruta-navy-deep'
-                      : 'border-ruta-blue-line bg-white'
-                  }`}
-                  onPress={() => setTipoSeleccionado(tipo.valor)}
-                >
-                  <Text className={`text-xs font-bold ${activo ? 'text-white' : 'text-ruta-navy'}`}>
-                    {tipo.etiqueta} · {cantidad}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        ) : null}
-
-        <View className="mb-1 flex-row items-center justify-between">
-          <View>
-            <Text className="text-base font-bold text-ruta-navy">Tu garaje</Text>
-            <Text className="mt-0.5 text-xs text-ruta-blue-muted">
-              {vehiculosFiltrados.length}{' '}
-              {vehiculosFiltrados.length === 1 ? 'vehículo configurado' : 'vehículos configurados'}
-            </Text>
-          </View>
-          {vehiculosFiltrados.length > 0 ? (
-            <TouchableOpacity
-              accessibilityRole="link"
-              className="flex-row items-center gap-1 px-2 py-2"
-              onPress={abrirGaraje}
-            >
-              <Text className="text-xs font-bold text-ruta-blue">Ver garaje</Text>
-              <Ionicons name="chevron-forward" size={16} color="#2563EB" />
-            </TouchableOpacity>
-          ) : null}
-        </View>
-        {vehiculosFiltrados.slice(0, 3).map((item) => (
-          <TouchableOpacity
-            key={item.id}
-            accessibilityRole="button"
-            className="mt-2 flex-row items-center gap-3 rounded-xl border border-ruta-blue-line bg-ruta-surface p-3"
-            onPress={() => router.push(`/(app)/vehiculo/${item.id}`)}
-          >
-            <View
-              className="h-10 w-10 items-center justify-center rounded-xl"
-              style={{ backgroundColor: COLORES_TIPO_VEHICULO[item.type].fondo }}
-            >
-              <MaterialCommunityIcons
-                name={ICONOS_TIPO_VEHICULO[item.type]}
-                size={21}
-                color={COLORES_TIPO_VEHICULO[item.type].icono}
-              />
-            </View>
-            <View className="flex-1">
-              <Text className="text-sm font-semibold text-ruta-navy" numberOfLines={1}>
-                {item.name}
-              </Text>
-              <Text className="mt-0.5 text-xs text-ruta-blue-muted">
-                {distanciaDelVehiculo(item.type, item.current_km)}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={17} color="#686E69" />
-          </TouchableOpacity>
-        ))}
-        {vehiculosFiltrados.length > 3 ? (
-          <TouchableOpacity
-            accessibilityRole="link"
-            className="mt-3 min-h-11 items-center justify-center rounded-xl border border-ruta-blue-line bg-ruta-surface"
-            onPress={() => router.push('/(app)/mis-vehiculos')}
-          >
-            <Text className="text-sm font-semibold text-ruta-blue">
-              Ver los {vehiculosFiltrados.length - 3} vehículos restantes
-            </Text>
-          </TouchableOpacity>
-        ) : null}
       </ScrollView>
 
       <NavegacionInferior activa="panel" />

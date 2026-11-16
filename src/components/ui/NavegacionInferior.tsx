@@ -4,21 +4,15 @@ import { TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Texto as Text } from '@/components/ui/Texto';
 
-type Seccion = 'panel' | 'vehiculos' | 'garaje';
+type Seccion = 'panel' | 'garaje';
 
 const SECCIONES: {
   clave: Seccion;
   etiqueta: string;
   icono: keyof typeof Ionicons.glyphMap;
-  ruta: '/(app)/panel' | '/(app)/mis-vehiculos' | '/(app)';
+  ruta: '/(app)/panel' | '/(app)';
 }[] = [
   { clave: 'panel', etiqueta: 'Panel', icono: 'grid-outline', ruta: '/(app)/panel' },
-  {
-    clave: 'vehiculos',
-    etiqueta: 'Vehículos',
-    icono: 'car-sport-outline',
-    ruta: '/(app)/mis-vehiculos',
-  },
   { clave: 'garaje', etiqueta: 'Garaje', icono: 'albums-outline', ruta: '/(app)' },
 ];
 

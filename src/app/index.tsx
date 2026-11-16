@@ -8,7 +8,7 @@ export default function RootIndex() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 justify-center items-center bg-slate-50">
+      <View className="flex-1 justify-center items-center bg-[#F8FBFF]">
         <ActivityIndicator size="large" color="#2563EB" />
       </View>
     );
