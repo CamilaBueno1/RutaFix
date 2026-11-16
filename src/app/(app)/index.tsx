@@ -7,7 +7,6 @@ import {
   RefreshControl,
   ActivityIndicator,
   Easing,
-  Modal,
   ScrollView,
   BackHandler,
   Platform,
@@ -16,6 +15,8 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthProvider';
 import { useVehiculos } from '@/hooks/useVehiculos';
 import { sincronizarNotificacionesMantenimiento } from '@/services/notificaciones.service';
+import { BotonCerrarSesion } from '@/components/ui/BotonCerrarSesion';
+import { FondoClaymorphism } from '@/components/ui/FondoClaymorphism';
 import { TIPOS_VEHICULOS } from '@/services/vehiculos.service';
 import type { TipoVehiculo } from '@/types/database.types';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -234,7 +235,7 @@ function VehicleCreationFlow({
 export default function VehiclesListScreen() {
   const router = useRouter();
   const { alta } = useLocalSearchParams<{ alta?: string }>();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { vehiculos, cargando, error, recargar } = useVehiculos();
 
   const [selectedType, setSelectedType] = useState<TipoVehiculo | 'todos'>('todos');
@@ -242,9 +243,6 @@ export default function VehiclesListScreen() {
     alta === 'vehiculo' ? 'category' : null
   );
   const [creationType, setCreationType] = useState<TipoVehiculo>('car');
-  const [signOutVisible, setSignOutVisible] = useState(false);
-  const [signOutLoading, setSignOutLoading] = useState(false);
-  const [signOutError, setSignOutError] = useState<string | null>(null);
   const [entrance] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
@@ -297,26 +295,6 @@ export default function VehiclesListScreen() {
     return vehiculos.filter((v) => v.type === selectedType);
   }, [vehiculos, selectedType]);
 
-  const handleSignOut = () => {
-    setSignOutError(null);
-    setSignOutVisible(true);
-  };
-
-  const confirmSignOut = async () => {
-    try {
-      setSignOutLoading(true);
-      setSignOutError(null);
-      await signOut();
-      setSignOutVisible(false);
-    } catch (error: unknown) {
-      setSignOutError(
-        error instanceof Error ? error.message : 'No se pudo cerrar la sesión. Intenta de nuevo.'
-      );
-    } finally {
-      setSignOutLoading(false);
-    }
-  };
-
   const closeCreation = () => {
     if (creationStep === 'form') {
       setCreationStep('category');
@@ -345,7 +323,8 @@ export default function VehiclesListScreen() {
   }
 
   return (
-    <Pantalla sinInferior className="bg-[#F8FBFF]">
+    <Pantalla sinInferior className="bg-[#EAF2FB]">
+      <FondoClaymorphism />
       <Animated.View
         className="relative overflow-hidden rounded-b-[28px] bg-[#EDF5FC] px-5 pb-5 pt-3"
         style={entranceStyle}
@@ -369,15 +348,7 @@ export default function VehiclesListScreen() {
                 </Text>
               </View>
             </View>
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessibilityLabel="Cerrar sesión"
-              className="h-10 w-10 items-center justify-center rounded-full border border-ruta-blue-line bg-white shadow-sm"
-              onPress={handleSignOut}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Ionicons name="log-out-outline" size={20} color="#475569" />
-            </TouchableOpacity>
+            <BotonCerrarSesion />
           </View>
           <View className="mt-5">
             <View className="mb-2 self-start flex-row items-center gap-2 rounded-full border border-[#DBEAFE] bg-[#EFF6FF] px-3 py-1.5">
@@ -562,53 +533,6 @@ export default function VehiclesListScreen() {
         />
       )}
 
-      <Modal
-        visible={signOutVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setSignOutVisible(false)}
-      >
-        <View className="flex-1 justify-center bg-[#0F172A]/55 px-6">
-          <View className="w-full max-w-sm self-center rounded-[28px] border border-ruta-blue-line bg-white p-6 shadow-2xl shadow-ruta-navy/20">
-            <View className="mb-4 h-14 w-14 items-center justify-center rounded-2xl border border-ruta-blue-line bg-ruta-blue-soft">
-              <Ionicons name="log-out-outline" size={25} color="#2563EB" />
-            </View>
-            <Text className="text-[22px] font-extrabold text-ruta-navy">¿Cerrar sesión?</Text>
-            <Text className="mt-2 text-sm leading-5 text-ruta-blue-muted">
-              Tu garaje estará aquí cuando regreses.
-            </Text>
-            {signOutError ? (
-              <View className="mt-4 rounded-xl border border-ruta-clay/30 bg-ruta-clay-soft p-3">
-                <Text className="text-xs font-medium text-ruta-clay-dark">{signOutError}</Text>
-              </View>
-            ) : null}
-            <View className="mt-6 flex-row gap-3">
-              <TouchableOpacity
-                accessibilityRole="button"
-                className="min-h-[52px] flex-1 items-center justify-center rounded-xl border border-ruta-blue-line bg-[#F1F5F9] py-3.5"
-                onPress={() => setSignOutVisible(false)}
-                disabled={signOutLoading}
-              >
-                <Text className="text-sm font-semibold text-ruta-navy">Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                accessibilityRole="button"
-                className={`min-h-[52px] flex-1 items-center justify-center rounded-xl bg-ruta-navy-deep py-3.5 ${
-                  signOutLoading ? 'opacity-70' : ''
-                }`}
-                onPress={() => void confirmSignOut()}
-                disabled={signOutLoading}
-              >
-                {signOutLoading ? (
-                  <ActivityIndicator color="#FFFFFF" />
-                ) : (
-                  <Text className="text-sm font-semibold text-white">Cerrar sesión</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
       <NavegacionInferior activa="garaje" />
     </Pantalla>
   );

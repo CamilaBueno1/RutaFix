@@ -2,6 +2,8 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, TouchableOpacity, View } from 'react-native';
+import { BotonCerrarSesion } from '@/components/ui/BotonCerrarSesion';
+import { FondoClaymorphism } from '@/components/ui/FondoClaymorphism';
 import { NavegacionInferior } from '@/components/ui/NavegacionInferior';
 import { Pantalla } from '@/components/ui/Pantalla';
 import { Texto as Text } from '@/components/ui/Texto';
@@ -63,7 +65,8 @@ export default function PanelScreen() {
   const estadoPendiente = estadoServicio.estado === 'proximo' || estadoServicio.estado === 'vencido';
 
   return (
-    <Pantalla sinInferior className="bg-[#F8FBFF]">
+    <Pantalla sinInferior className="bg-[#EAF2FB]">
+      <FondoClaymorphism />
       <ScrollView
         className="flex-1"
         contentContainerClassName="px-5 pb-6 pt-3"
@@ -89,10 +92,13 @@ export default function PanelScreen() {
               <Text className="text-xs text-ruta-blue-muted">Tu centro de mando</Text>
             </View>
           </View>
-          <View className="rounded-full border border-ruta-blue-line bg-ruta-surface px-3 py-2">
-            <Text className="text-xs font-semibold text-ruta-navy">
-              {vehiculos.length} {vehiculos.length === 1 ? 'vehículo' : 'vehículos'}
-            </Text>
+          <View className="flex-row items-center gap-2">
+            <View className="rounded-full border border-ruta-blue-line bg-ruta-surface px-3 py-2">
+              <Text className="text-xs font-semibold text-ruta-navy">
+                {vehiculos.length} {vehiculos.length === 1 ? 'vehículo' : 'vehículos'}
+              </Text>
+            </View>
+            <BotonCerrarSesion />
           </View>
         </View>
 
