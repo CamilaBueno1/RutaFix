@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,10 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthProvider';
 import { useVehiculos } from '@/hooks/useVehiculos';
+import { sincronizarNotificacionesMantenimiento } from '@/services/notificaciones.service';
 import { TIPOS_VEHICULOS, type Vehiculo } from '@/services/vehiculos.service';
 import type { TipoVehiculo } from '@/types/database.types';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,6 +23,14 @@ export default function VehiclesListScreen() {
   const { vehiculos, cargando, error, recargar } = useVehiculos();
 
   const [selectedType, setSelectedType] = useState<TipoVehiculo | 'todos'>('todos');
+
+  useFocusEffect(
+    useCallback(() => {
+      sincronizarNotificacionesMantenimiento().catch((error: unknown) => {
+        console.warn('No se pudieron sincronizar los avisos de mantenimiento:', error);
+      });
+    }, [])
+  );
 
   const filteredVehicles = useMemo(() => {
     if (selectedType === 'todos') return vehiculos;
@@ -105,7 +114,7 @@ export default function VehiclesListScreen() {
       <View className="flex-row justify-between items-center px-5 pt-3 pb-4 bg-white border-b border-slate-200">
         <View>
           <Text className="text-xl font-extrabold text-slate-900">Cuida lo que te mueve</Text>
-          <Text className="text-xs text-slate-500 mt-0.5 max-w-[240px]" numberOfLines={1}>
+          <Text className="text-xs text-slate-500 mt-0.5 max-w-60" numberOfLines={1}>
             {user?.email || 'Mi garaje'}
           </Text>
         </View>
@@ -184,31 +193,25 @@ export default function VehiclesListScreen() {
                 <Ionicons name="car-outline" size={44} color="#94A3B8" />
               </View>
               <Text className="text-lg font-bold text-slate-800 mb-1.5">No tienes vehículos aquí</Text>
-              <Text className="text-slate-500 text-sm text-center mb-5 leading-5 max-w-[280px]">
+              <Text className="text-slate-500 text-sm text-center mb-5 leading-5 max-w-70">
                 {selectedType === 'todos'
-                  ? 'Registra tu primer auto, moto, bicicleta o scooter para comenzar a controlar tus servicios.'
+                  ? 'Registra tu primer auto, moto, bicicleta o scooter con el botón de abajo.'
                   : `No tienes registros en la categoría "${TIPOS_VEHICULOS.find((t) => t.valor === selectedType)?.etiqueta}".`}
               </Text>
-              <TouchableOpacity
-                className="flex-row items-center gap-2 bg-blue-600 px-5 py-3 rounded-xl shadow-sm"
-                onPress={() => router.push('/(app)/vehiculo/formulario')}
-              >
-                <Ionicons name="add" size={20} color="#FFFFFF" />
-                <Text className="text-white font-bold text-sm">Agregar Vehículo</Text>
-              </TouchableOpacity>
             </View>
           }
         />
       )}
 
-      {/* Botón flotante para registrar vehículo */}
       <TouchableOpacity
-        className="absolute bottom-6 right-5 bg-blue-600 flex-row items-center py-3.5 px-5 rounded-full shadow-lg gap-2"
+        accessibilityRole="button"
+        accessibilityLabel="Agregar vehículo"
+        className="absolute bottom-6 right-5 flex-row items-center gap-2 rounded-full bg-slate-950 px-5 py-3.5 shadow-lg"
         activeOpacity={0.85}
-        onPress={() => router.push('/(app)/vehiculo/formulario')}
+        onPress={() => router.push('/vehiculo/formulario')}
       >
-        <Ionicons name="add" size={24} color="#FFFFFF" />
-        <Text className="text-white font-bold text-sm">Vehículo</Text>
+        <Ionicons name="add" size={22} color="#FFFFFF" />
+        <Text className="text-sm font-bold text-white">Agregar vehículo</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );

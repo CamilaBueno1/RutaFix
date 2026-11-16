@@ -11,7 +11,7 @@ export default function AppLayout() {
     >
       <Stack.Screen name="index" />
       <Stack.Screen name="vehiculo/[id]" />
-      <Stack.Screen name="vehiculo/formulario" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="vehiculo/formulario" />
       <Stack.Screen name="mantenimiento/formulario" options={{ presentation: 'modal' }} />
     </Stack>
   );
