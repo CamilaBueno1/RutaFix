@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=kiillvoodcabhekgfbrj&features=docs%2Caccount%2Cdatabase%2Cdebugging%2Cdevelopment%2Cfunctions%2Cbranching%2Cfeedback%2Cnotebooks",
+      "tools": ["*"]
+    },
+    "expo": {
+      "type": "http",
+      "url": "https://mcp.expo.dev/mcp",
+      "tools": ["*"]
+    },
+    "stitch": {
+      "type": "http",
+      "url": "https://stitch.googleapis.com/mcp",
+      "headers": {
+        "X-Goog-Api-Key": "${STITCH_API_KEY}"
+      },
+      "tools": ["*"]
+    }
+  }
+}

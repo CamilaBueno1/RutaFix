@@ -22,7 +22,7 @@ export interface Database {
           model: string | null;
           year: number | null;
           plate: string | null;
-          current_km: number;
+          current_km: number | null;
           created_at: string;
         };
         Insert: {
@@ -34,7 +34,7 @@ export interface Database {
           model?: string | null;
           year?: number | null;
           plate?: string | null;
-          current_km?: number;
+          current_km?: number | null;
           created_at?: string;
         };
         Update: {
@@ -46,7 +46,7 @@ export interface Database {
           model?: string | null;
           year?: number | null;
           plate?: string | null;
-          current_km?: number;
+          current_km?: number | null;
           created_at?: string;
         };
         Relationships: [];
@@ -58,7 +58,7 @@ export interface Database {
           user_id: string;
           service_type: string;
           service_date: string;
-          odometer_km: number;
+          odometer_km: number | null;
           cost: number;
           notes: string | null;
           next_due_km: number | null;
@@ -71,7 +71,7 @@ export interface Database {
           user_id?: string;
           service_type: string;
           service_date?: string;
-          odometer_km: number;
+          odometer_km: number | null;
           cost?: number;
           notes?: string | null;
           next_due_km?: number | null;
@@ -84,7 +84,7 @@ export interface Database {
           user_id?: string;
           service_type?: string;
           service_date?: string;
-          odometer_km?: number;
+          odometer_km?: number | null;
           cost?: number;
           notes?: string | null;
           next_due_km?: number | null;

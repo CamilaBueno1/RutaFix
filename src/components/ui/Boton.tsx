@@ -1,16 +1,19 @@
 import React from 'react';
 import {
+  View,
   TouchableOpacity,
-  Text,
   ActivityIndicator,
-  TouchableOpacityProps,
+  type TouchableOpacityProps,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Texto as Text } from '@/components/ui/Texto';
 
 interface PropiedadesBoton extends TouchableOpacityProps {
   titulo: string;
   variante?: 'primario' | 'secundario' | 'peligro' | 'borde';
   cargando?: boolean;
   clasePersonalizada?: string;
+  icono?: keyof typeof Ionicons.glyphMap;
 }
 
 export function Boton({
@@ -20,49 +23,57 @@ export function Boton({
   disabled,
   className = '',
   clasePersonalizada = '',
+  icono,
   ...resto
 }: PropiedadesBoton) {
-  let claseEstiloBoton = 'rounded-xl py-3.5 px-5 flex-row items-center justify-center';
+  let claseEstiloBoton =
+    'min-h-[52px] flex-row items-center justify-center gap-2 rounded-xl px-5 py-3.5';
   let claseEstiloTexto = 'text-base font-bold text-center';
 
   switch (variante) {
     case 'secundario':
-      claseEstiloBoton += ' bg-slate-100 active:bg-slate-200';
-      claseEstiloTexto += ' text-slate-800';
+      claseEstiloBoton += ' bg-ruta-inset active:bg-ruta-soft';
+      claseEstiloTexto += ' text-ruta-ink';
       break;
     case 'peligro':
-      claseEstiloBoton += ' bg-red-600 active:bg-red-700';
+      claseEstiloBoton += ' bg-ruta-clay-dark active:bg-[#7B3823]';
       claseEstiloTexto += ' text-white';
       break;
     case 'borde':
-      claseEstiloBoton += ' bg-transparent border-2 border-blue-600 active:bg-blue-50';
-      claseEstiloTexto += ' text-blue-600';
+      claseEstiloBoton += ' border border-ruta-sage bg-transparent active:bg-ruta-sage-soft';
+      claseEstiloTexto += ' text-ruta-sage';
       break;
     default:
-      claseEstiloBoton += ' bg-blue-600 active:bg-blue-700 shadow-sm';
+      claseEstiloBoton +=
+        ' bg-ruta-sage shadow-md shadow-[#242725]/5 active:bg-ruta-sage-dark active:scale-[0.98]';
       claseEstiloTexto += ' text-white';
       break;
   }
 
   if (disabled || cargando) {
-    claseEstiloBoton += ' opacity-50';
+    claseEstiloBoton += ' opacity-60';
   }
 
   const claseFinal = `${claseEstiloBoton} ${clasePersonalizada} ${className}`.trim();
+  const colorIcono =
+    variante === 'borde' || variante === 'secundario' ? '#36533C' : '#FFFFFF';
 
   return (
     <TouchableOpacity
       className={claseFinal}
       disabled={disabled || cargando}
-      activeOpacity={0.75}
+      activeOpacity={0.8}
       {...resto}
     >
       {cargando ? (
         <ActivityIndicator
-          color={variante === 'borde' || variante === 'secundario' ? '#2563EB' : '#FFFFFF'}
+          color={variante === 'borde' || variante === 'secundario' ? '#36533C' : '#FFFFFF'}
         />
       ) : (
-        <Text className={claseEstiloTexto}>{titulo}</Text>
+        <View className="flex-row items-center justify-center gap-2">
+          <Text className={claseEstiloTexto}>{titulo}</Text>
+          {icono ? <Ionicons name={icono} size={20} color={colorIcono} /> : null}
+        </View>
       )}
     </TouchableOpacity>
   );

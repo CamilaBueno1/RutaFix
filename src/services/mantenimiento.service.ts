@@ -1,20 +1,51 @@
 import { supabase } from '@/lib/supabase';
-import type { Database } from '@/types/database.types';
+import type { Database, TipoVehiculo } from '@/types/database.types';
 
 export type RegistroMantenimiento = Database['public']['Tables']['maintenance_records']['Row'];
 export type NuevoRegistroMantenimiento = Database['public']['Tables']['maintenance_records']['Insert'];
 export type ActualizarRegistroMantenimiento = Database['public']['Tables']['maintenance_records']['Update'];
 
-export const SERVICIOS_COMUNES = [
-  'Cambio de aceite y filtro',
-  'Frenos (pastillas / zapatas)',
-  'Neumáticos / Llantas',
-  'Cadena / Transmisión',
-  'Filtro de aire y bujías',
-  'Alineación y balanceo',
-  'Revisión general / Batería',
-  'Otro',
-];
+export const SERVICIOS_POR_TIPO: Record<TipoVehiculo, string[]> = {
+  car: [
+    'Cambio de aceite y filtro',
+    'Frenos (pastillas / discos)',
+    'Neumáticos y rotación',
+    'Filtros de aire / cabina',
+    'Batería y sistema eléctrico',
+    'Alineación / suspensión',
+    'Revisión general',
+    'Otro',
+  ],
+  motorcycle: [
+    'Cambio de aceite y filtro',
+    'Cadena / transmisión',
+    'Frenos (pastillas / líquido)',
+    'Neumáticos',
+    'Bujía / filtro de aire',
+    'Refrigerante',
+    'Revisión general',
+    'Otro',
+  ],
+  bicycle: [
+    'Limpieza y lubricación de cadena',
+    'Ajuste de cambios / transmisión',
+    'Frenos (pastillas / cables)',
+    'Neumáticos / cámara',
+    'Mantenimiento de suspensión',
+    'Centrado de ruedas / radios',
+    'Ajuste general',
+    'Otro',
+  ],
+  scooter: [
+    'Batería y sistema eléctrico',
+    'Frenos',
+    'Neumáticos',
+    'Motor / controlador',
+    'Luces y conexiones',
+    'Revisión general',
+    'Otro',
+  ],
+};
 
 /**
  * Lista todos los mantenimientos de un vehículo ordenados por fecha descendente.
@@ -50,7 +81,7 @@ export async function obtenerMantenimientoPorId(id: string): Promise<RegistroMan
 export async function crearRegistroMantenimiento(
   registro: Omit<NuevoRegistroMantenimiento, 'user_id'>
 ): Promise<RegistroMantenimiento> {
-  if (registro.odometer_km < 0) {
+  if (registro.odometer_km != null && registro.odometer_km < 0) {
     throw new Error('El kilometraje del servicio no puede ser negativo.');
   }
   if ((registro.cost ?? 0) < 0) {
@@ -83,7 +114,11 @@ export async function crearRegistroMantenimiento(
       .eq('id', registro.vehicle_id)
       .single();
 
-    if (vehiculo && registro.odometer_km > vehiculo.current_km) {
+    if (
+      vehiculo &&
+      registro.odometer_km != null &&
+      (vehiculo.current_km == null || registro.odometer_km > vehiculo.current_km)
+    ) {
       await supabase
         .from('vehicles')
         .update({ current_km: registro.odometer_km })
@@ -103,7 +138,7 @@ export async function actualizarRegistroMantenimiento(
   id: string,
   cambios: ActualizarRegistroMantenimiento
 ): Promise<RegistroMantenimiento> {
-  if (cambios.odometer_km !== undefined && cambios.odometer_km < 0) {
+  if (cambios.odometer_km != null && cambios.odometer_km < 0) {
     throw new Error('El kilometraje del servicio no puede ser negativo.');
   }
   if (cambios.cost !== undefined && cambios.cost < 0) {

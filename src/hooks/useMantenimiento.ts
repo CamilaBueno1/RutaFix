@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
+import { useFocusEffect } from 'expo-router';
 import {
   listarMantenimientosPorVehiculo,
   crearRegistroMantenimiento,
@@ -11,7 +12,7 @@ import {
 } from '@/services/mantenimiento.service';
 import { obtenerEstadoServicio } from '@/utils/estadoServicio';
 
-export function useMantenimiento(idVehiculo: string | undefined, kmActual: number = 0) {
+export function useMantenimiento(idVehiculo: string | undefined, kmActual: number | null = 0) {
   const [registros, setRegistros] = useState<RegistroMantenimiento[]>([]);
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,9 +31,11 @@ export function useMantenimiento(idVehiculo: string | undefined, kmActual: numbe
     }
   }, [idVehiculo]);
 
-  useEffect(() => {
-    cargarRegistros();
-  }, [cargarRegistros]);
+  useFocusEffect(
+    useCallback(() => {
+      void cargarRegistros();
+    }, [cargarRegistros])
+  );
 
   const costoTotal = useMemo(() => calcularCostoTotal(registros), [registros]);
 

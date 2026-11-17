@@ -1,335 +1,143 @@
-# Guia de Requisitos y Configuracion Externa
-## "Cuida lo que te mueve" — Expo + Supabase + 3 MCP
+# Requisitos externos y configuración
 
----
+Guía para preparar los servicios externos que necesita **Cuida lo que te mueve**. La aplicación usa Expo y Supabase; los tres servidores MCP remotos (Supabase, Stitch y Expo) se conectan por separado desde VS Code.
 
-## 1. Lo que YA esta hecho (no tocar)
+## 1. Herramientas locales
 
-| Archivo | Estado |
-|---|---|
-| `src/` — toda la app (pantallas, servicios, hooks, componentes) | Completo |
-| `.env` — credenciales de Supabase | Completo |
-| `.mcp.json` y `.vscode/mcp.json` — 3 servidores MCP | Completo |
-| `metro.config.js` — Uniwind + Tailwind CSS | Completo |
-| TypeScript | 0 errores |
+- Node.js LTS y npm.
+- Git.
+- Para Android físico o emulador: Android Platform Tools (`adb`). En un teléfono, activa las opciones de desarrollador y la depuración USB, conecta el cable y acepta el permiso de depuración.
+- Expo Go instalado en el dispositivo para una ejecución de desarrollo. Las notificaciones locales están disponibles en Expo Go; las notificaciones remotas no son parte de esta implementación.
 
----
+Instala las dependencias del repositorio con `npm install`. No subas `.env` al repositorio.
 
-## 2. Lo que DEBES hacer tu (pasos externos)
+## 2. Configurar Supabase (obligatorio)
 
-### PASO 1 — Crear las tablas en Supabase (OBLIGATORIO)
+1. Crea o selecciona un proyecto de desarrollo en Supabase.
+2. En **Project Settings → API**, copia la URL del proyecto y la clave publicable.
+3. En la raíz del proyecto, crea `.env` a partir de `.env.example` y completa:
 
-1. Abre: https://supabase.com/dashboard/project/euqzmsqpvfnadhpvwznu/sql/new
-2. Pega y ejecuta este SQL completo:
+   ```env
+   EXPO_PUBLIC_SUPABASE_URL=https://TU_PROJECT_REF.supabase.co
+   EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=TU_CLAVE_PUBLICABLE
+   ```
 
-```sql
-create table public.vehicles (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
-  type text not null check (type in ('car','motorcycle','bicycle','scooter')),
-  name text not null,
-  brand text,
-  model text,
-  year int check (year between 1950 and 2100),
-  plate text,
-  current_km int not null default 0 check (current_km >= 0),
-  created_at timestamptz not null default now()
-);
+   La clave publicable puede estar en la app; nunca pongas una clave `service_role` en una variable `EXPO_PUBLIC_*`.
 
-create table public.maintenance_records (
-  id uuid primary key default gen_random_uuid(),
-  vehicle_id uuid not null references public.vehicles(id) on delete cascade,
-  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
-  service_type text not null,
-  service_date date not null default current_date,
-  odometer_km int not null check (odometer_km >= 0),
-  cost numeric(10,2) not null default 0 check (cost >= 0),
-  notes text,
-  next_due_km int check (next_due_km >= 0),
-  next_due_date date,
-  created_at timestamptz not null default now()
-);
+4. El esquema está versionado en [`supabase/migrations/20261115141200_create_vehicle_maintenance.sql`](./supabase/migrations/20261115141200_create_vehicle_maintenance.sql). Para aplicarlo manualmente, ejecuta el contenido de ese archivo una sola vez en **SQL Editor**; no ejecutes también el bloque de referencia de abajo. Si las tablas ya existen, compara primero el esquema y las políticas para evitar sobrescribir cambios.
 
-create index on public.maintenance_records (vehicle_id, service_date desc);
+   ```sql
+   create table public.vehicles (
+     id uuid primary key default gen_random_uuid(),
+     user_id uuid not null default auth.uid()
+       references auth.users(id) on delete cascade,
+     type text not null
+       check (type in ('car', 'motorcycle', 'bicycle', 'scooter')),
+     name text not null,
+     brand text,
+     model text,
+     year int check (year between 1950 and 2100),
+     plate text,
+     current_km int not null default 0 check (current_km >= 0),
+     created_at timestamptz not null default now()
+   );
 
-alter table public.vehicles enable row level security;
-alter table public.maintenance_records enable row level security;
+   create table public.maintenance_records (
+     id uuid primary key default gen_random_uuid(),
+     vehicle_id uuid not null
+       references public.vehicles(id) on delete cascade,
+     user_id uuid not null default auth.uid()
+       references auth.users(id) on delete cascade,
+     service_type text not null,
+     service_date date not null default current_date,
+     odometer_km int not null check (odometer_km >= 0),
+     cost numeric(10, 2) not null default 0 check (cost >= 0),
+     notes text,
+     next_due_km int check (next_due_km >= 0),
+     next_due_date date,
+     created_at timestamptz not null default now()
+   );
 
-create policy vehicles_owner on public.vehicles
-  for all to authenticated
-  using ((select auth.uid()) = user_id)
-  with check ((select auth.uid()) = user_id);
+   create index maintenance_records_vehicle_date_idx
+     on public.maintenance_records (vehicle_id, service_date desc);
 
-create policy maintenance_owner on public.maintenance_records
-  for all to authenticated
-  using ((select auth.uid()) = user_id)
-  with check (
-    (select auth.uid()) = user_id
-    and exists (select 1 from public.vehicles v
-                where v.id = vehicle_id and v.user_id = (select auth.uid()))
-  );
-```
+   alter table public.vehicles enable row level security;
+   alter table public.maintenance_records enable row level security;
 
-### PASO 2 — Desactivar confirmacion de email (para pruebas)
+   create policy vehicles_owner on public.vehicles
+     for all to authenticated
+     using ((select auth.uid()) = user_id)
+     with check ((select auth.uid()) = user_id);
 
-1. Abre: https://supabase.com/dashboard/project/euqzmsqpvfnadhpvwznu/auth/providers
-2. Seccion "Email" > desmarca **"Confirm email"** > Save
+   create policy maintenance_owner on public.maintenance_records
+     for all to authenticated
+     using ((select auth.uid()) = user_id)
+     with check (
+       (select auth.uid()) = user_id
+       and exists (
+         select 1
+         from public.vehicles v
+         where v.id = vehicle_id
+           and v.user_id = (select auth.uid())
+       )
+     );
+   ```
 
-### PASO 3 — Instalar Android Studio y crear emulador
+5. En **Authentication → URL Configuration**, añade las URLs de retorno que realmente utilice cada plataforma. En este proyecto la lista estaba vacía y el *Site URL* era `http://localhost:3000`; para web local, usa el origen y ruta del servidor Expo (normalmente `http://localhost:8081/auth/callback`). Para Android, permite el esquema `deber7://auth/callback`; para Expo Go, usa la URL exacta que produzca `makeRedirectUri`, no una URL inventada. Configura el *Site URL* al origen web de desarrollo o al sitio real, según el flujo.
+6. En **Authentication → Providers → Email**, decide si exigir confirmación de correo. Si la dejas activa, configura el envío de correo y confirma la cuenta antes de iniciar sesión. Los registros de este proyecto mostraron que el SMTP de prueba de Resend no puede enviar a destinatarios arbitrarios; para ellos, verifica un dominio y usa un remitente de ese dominio. Desactivarla es solo una opción para un proyecto de demostración sin datos reales.
 
-1. Descarga Android Studio: https://developer.android.com/studio
-2. Abre Android Studio > Virtual Device Manager > Create Device
-3. Elige Pixel 7 / API 34 (Android 14)
-4. Verifica que `adb` funciona: `adb devices`
+### Inicio de sesión con Google (opcional)
 
-### PASO 4 — Instalar Node.js 20+
+Si quieres habilitar el botón de Google, activa Google en **Authentication → Providers**, configura las credenciales OAuth en el panel y registra la URL de retorno de Supabase (`https://<PROJECT_REF>.supabase.co/auth/v1/callback`) en Google Cloud. Agrega también los deep links de la app a la lista de Redirect URLs de Supabase. Los registros del proyecto indicaron que el proveedor Google no estaba habilitado. La implementación está en [`src/services/googleAuth.service.ts`](./src/services/googleAuth.service.ts). No compartas el secreto de cliente en el código móvil.
 
-- Descarga: https://nodejs.org/en (LTS, v20 o superior)
-- Verifica: `node --version`
+### SMTP de confirmación con Resend
 
----
+La confirmación de correo está activa y el SMTP personalizado de Resend ya aparece habilitado en Supabase. Se configuró el remitente de prueba `onboarding@resend.dev`; la contraseña se guarda cifrada en Supabase y no se muestra en el formulario. La activación no confirma por sí sola la entrega: registra una cuenta de prueba y revisa que llegue el correo.
 
-## 3. Configuracion de los 3 MCP en VS Code
+El remitente de prueba de Resend puede limitar los destinatarios y no sirve para usuarios arbitrarios. Antes de publicar o permitir registros de otros usuarios, verifica un dominio de envío en Resend, agrega sus registros DNS y cambia el remitente por una dirección de ese dominio. No pongas la API key en `.env`, código, configuración MCP ni en el chat; se introduce únicamente en el campo Password de SMTP en Supabase.
 
-### Ubicacion de los archivos MCP
+Resend ofrece direcciones de prueba como `delivered@resend.dev` para simular entregas; no son buzones reales para recibir enlaces de confirmación.
 
-```
-deber7/
-├── .mcp.json              <- archivo principal (en la raiz)
-└── .vscode/
-    └── mcp.json           <- copia para VS Code Copilot
-```
+## 3. Permisos de notificaciones locales
 
-### Contenido actual de `.mcp.json`
+La app solicita el permiso de notificaciones al encontrar servicios programados. Debes aceptar el aviso del sistema operativo; si se deniega, los estados seguirán visibles en la app, pero el teléfono no mostrará recordatorios.
 
-```json
-{
-  "servers": {
-    "figma": {
-      "type": "http",
-      "url": "https://mcp.figma.com/mcp"
-    },
-    "supabase": {
-      "type": "http",
-      "url": "https://mcp.supabase.com/mcp?project_ref=euqzmsqpvfnadhpvwznu&features=database,docs,development,debugging"
-    },
-    "mobile-mcp": {
-      "type": "stdio",
-      "command": "cmd",
-      "args": ["/c", "npx", "-y", "@mobilenext/mobile-mcp@latest"]
-    }
-  }
-}
-```
+- En Android, el canal se crea en tiempo de ejecución. Comprueba también que las notificaciones de la app no estén deshabilitadas en Ajustes.
+- Las fechas se programan a las 9:00 hora local. Se programa un aviso 15 días antes y otro el día previsto cuando la fecha todavía está en el futuro.
+- Los avisos por kilometraje se evalúan cuando se abre o vuelve a enfocarse la pantalla principal; la app no puede conocer el kilometraje nuevo mientras está cerrada.
+- La configuración no requiere credenciales de Expo Push ni un servidor de notificaciones remotas.
 
-### Como activar los MCP en VS Code
+## 4. Configuración de los servidores MCP (opcional para ejecutar la app)
 
-1. Abre VS Code en la carpeta `deber7`
-2. Abre el chat de GitHub Copilot (Ctrl+Shift+I o icono Copilot)
-3. Cambia al modo **Agent** (selector arriba del chat)
-4. En el panel "MCP Servers" (o desde `.vscode/mcp.json`) haz clic en **Start** para cada servidor
-5. Figma pedira autorizacion en el navegador — acepta
-6. Supabase pedira autorizacion OAuth — acepta y selecciona la organizacion
+Los servidores MCP son herramientas de desarrollo y no son necesarios para que la aplicación móvil se conecte con Supabase.
 
----
+1. En Stitch, inicia sesión y abre **Stitch Settings → API Keys → Create Key**. Copia la clave y guárdala solo en el entorno local de tu usuario.
+2. En Windows, abre **Editar las variables de entorno de la cuenta** y crea `STITCH_API_KEY` con el valor de la clave. Cierra completamente y vuelve a abrir VS Code para que cargue la variable. No pegues la clave en el chat ni en archivos del repositorio.
+3. El `.mcp.json` de la raíz apunta a `https://stitch.googleapis.com/mcp` y lee la clave desde `${STITCH_API_KEY}` en el encabezado `X-Goog-Api-Key`. No reemplaces el marcador con la clave.
+4. Autoriza Supabase cuando el cliente lo solicite. Si usas un proyecto distinto, actualiza el `project_ref` de Supabase en `.mcp.json` para que coincida con la URL de `.env`.
+5. Los servidores MCP (Supabase, Stitch y Expo) se configuran en VS Code de forma independiente de la app. La conexión remota de Expo MCP no requiere iniciar Metro.
+6. Consulta [Uso de los MCP](./docs/uso-de-los-mcp.md) y la [guía de demo](./docs/GUIA_DEMO_MCP_RITA_FIX.md) para ejemplos de solicitudes, límites y solución de problemas.
 
-## 4. Demos de MCP para el video (capturas requeridas)
+No uses el MCP de Supabase para abrir políticas RLS a `anon` ni para ejecutar cambios destructivos sin revisar el alcance y el SQL.
 
-Guarda cada captura en `docs/mcp-evidence/`.
+## 5. Arranque de desarrollo
 
-### Demo 1: Figma MCP
-
-**Archivo Figma:** https://www.figma.com/design/5Wb7iE6fsv9uVMHgVRiF8k/Sin-titulo?node-id=1-6
-
-En el chat de Copilot Agent escribe:
-```
-Usa el MCP de Figma para obtener el contexto del diseno del frame node-id=1-6 
-del archivo https://www.figma.com/design/5Wb7iE6fsv9uVMHgVRiF8k/Sin-titulo
-y dime los colores y componentes que tiene.
-```
-
-Captura: `docs/mcp-evidence/01_figma_diseno.png`
-
-### Demo 2: Supabase MCP
-
-En el chat de Copilot Agent escribe (uno por vez):
-```
-Con el MCP de Supabase, lista todas las tablas del proyecto euqzmsqpvfnadhpvwznu.
-```
-```
-Revisa el security advisor del proyecto y confirma que RLS esta activo 
-en las tablas vehicles y maintenance_records.
-```
-
-Capturas: `docs/mcp-evidence/02_supabase_tablas.png`, `03_supabase_rls.png`
-
-### Demo 3: mobile-mcp
-
-Primero inicia la app:
-```bash
-npx expo start --android
-```
-
-Luego en el chat de Copilot Agent escribe:
-```
-Usa mobile-mcp para listar los dispositivos Android conectados.
-```
-```
-En la app abierta en el emulador, registra un usuario con email prueba1@correo.com 
-y contrasena Test123456. Luego crea un vehiculo tipo moto, nombre "Mi Pulsar", 
-marca Bajaj, modelo NS200, anio 2022, 12000 km. Captura cada paso.
-```
-```
-Agrega un mantenimiento al vehiculo: tipo "Cambio de aceite", 
-fecha de hoy, 12000 km, costo 25, proximo a 15000 km. Captura el resultado.
-```
-```
-Intenta guardar un mantenimiento con km negativos (-500) y reporta 
-que mensaje de validacion muestra la app.
-```
-
-Capturas: `docs/mcp-evidence/04_mobile_lista.png`, `05_mobile_registro.png`, `06_mobile_vehiculo.png`, `07_mobile_mantenimiento.png`, `08_mobile_validacion.png`
-
----
-
-## 5. Iniciar la app
+Desde la raíz del proyecto:
 
 ```bash
-# Instalar dependencias (si no estan instaladas)
-npx expo install
-
-# Iniciar en Android (emulador debe estar abierto)
-npx expo start --android
-
-# Lint y typecheck
-npx expo lint
-npx tsc --noEmit
+npm install
+npx expo start
 ```
 
----
+Escanea el QR con Expo Go o abre la app desde un emulador conectado. Para usar Android directamente, también puedes iniciar con `npx expo start --android`.
 
-## 6. Credenciales del proyecto
+## 6. Generar APK para pruebas
 
-| Variable | Valor |
-|---|---|
-| `EXPO_PUBLIC_SUPABASE_URL` | `https://euqzmsqpvfnadhpvwznu.supabase.co` |
-| `EXPO_PUBLIC_SUPABASE_KEY` | `sb_publishable_geszVYCyIZEumjdBI3m_cA_17MbGlWb` |
-| Supabase project_ref | `euqzmsqpvfnadhpvwznu` |
-| Figma file key | `5Wb7iE6fsv9uVMHgVRiF8k` |
-| Figma node | `1-6` |
+El perfil `preview` de `eas.json` genera un APK instalable para distribución interna. Configura en Expo los valores públicos `EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, inicia sesión en EAS y ejecuta:
 
-> **IMPORTANTE:** Nunca subas el archivo `.env` a GitHub. Ya esta en `.gitignore`.
-
----
-
-## 7. Estructura completa de la app
-
-```
-deber7/
-├── .mcp.json                        <- 3 servidores MCP (en la raiz)
-├── .vscode/mcp.json                 <- copia para VS Code Copilot
-├── .env                             <- credenciales Supabase (NO subir a git)
-├── .env.example                     <- plantilla de variables
-├── metro.config.js                  <- Uniwind + Tailwind CSS v4
-├── requisitos.md                    <- esta guia
-├── docs/mcp-evidence/               <- capturas y bitacora MCP
-└── src/
-    ├── global.css                   <- @import "tailwindcss"; @import "uniwind";
-    ├── app/
-    │   ├── _layout.tsx              <- raiz: global.css + AuthProvider + RouteGuard
-    │   ├── index.tsx                <- redireccion inicial segun sesion
-    │   ├── (auth)/
-    │   │   ├── _layout.tsx
-    │   │   ├── login.tsx            <- pantalla de inicio de sesion
-    │   │   └── register.tsx         <- pantalla de registro
-    │   └── (app)/
-    │       ├── _layout.tsx
-    │       ├── index.tsx            <- lista de vehiculos con filtros
-    │       ├── vehiculo/
-    │       │   ├── [id].tsx         <- detalle + historial + estado
-    │       │   └── formulario.tsx   <- crear/editar vehiculo
-    │       └── mantenimiento/
-    │           └── formulario.tsx   <- crear/editar mantenimiento
-    ├── components/ui/
-    │   ├── Boton.tsx                <- boton con Tailwind CSS
-    │   ├── EntradaTexto.tsx         <- input con Tailwind CSS
-    │   └── InsigniaEstado.tsx       <- badge: Al dia / Proximo / Vencido
-    ├── context/
-    │   └── AuthProvider.tsx         <- sesion Supabase Auth
-    ├── hooks/
-    │   ├── useVehiculos.ts          <- hook reactivo de vehiculos
-    │   └── useMantenimiento.ts      <- hook reactivo de mantenimientos
-    ├── lib/
-    │   └── supabase.ts              <- cliente Singleton Supabase + AsyncStorage
-    ├── services/
-    │   ├── vehiculos.service.ts     <- CRUD de vehiculos
-    │   └── mantenimiento.service.ts <- CRUD de mantenimientos
-    ├── types/
-    │   ├── database.types.ts        <- tipos TypeScript de Supabase
-    │   └── declarations.d.ts        <- declaraciones de tipos para CSS
-    └── utils/
-        └── estadoServicio.ts        <- regla: Al dia / Proximo / Vencido
+```bash
+npx eas-cli@latest build:configure
+npx eas-cli@latest build --platform android --profile preview
 ```
 
----
-
-## 8. Bitacora MCP (plantilla)
-
-Copia esta tabla en `docs/mcp-evidence/README.md` para cada uso de MCP:
-
-| # | MCP usado | Herramienta | Prompt enviado | Resultado | Captura |
-|---|---|---|---|---|---|
-| 1 | Figma | get_design_context | "Extrae colores del frame node-id=1-6..." | Colores y estructura extraidos | 01_figma_diseno.png |
-| 2 | Supabase | list_tables | "Lista las tablas del proyecto..." | Tablas vehicles y maintenance_records | 02_supabase_tablas.png |
-| 3 | Supabase | get_advisors | "Revisa el security advisor..." | RLS activo en ambas tablas | 03_supabase_rls.png |
-| 4 | mobile-mcp | list_devices | "Lista los dispositivos Android..." | Emulador Pixel 7 detectado | 04_mobile_lista.png |
-| 5 | mobile-mcp | tap / type | "Registra usuario prueba1@correo.com..." | Usuario creado y sesion iniciada | 05_mobile_registro.png |
-| 6 | mobile-mcp | tap / type | "Crea vehiculo Mi Pulsar..." | Vehiculo creado en la lista | 06_mobile_vehiculo.png |
-| 7 | mobile-mcp | tap / type | "Agrega mantenimiento cambio de aceite..." | Mantenimiento registrado | 07_mobile_mantenimiento.png |
-| 8 | mobile-mcp | tap / type | "Intenta km negativos -500..." | Validacion mostrada correctamente | 08_mobile_validacion.png |
-
----
-
-## 9. Guion del video TikTok (5 min max)
-
-**Estructura sugerida:**
-
-| Tiempo | Lo que muestras | Lo que dices |
-|---|---|---|
-| 0:00–0:30 | Pantalla del chat Copilot Agent | "Voy a mostrar como 3 servidores MCP trabajan juntos en VS Code Copilot Agent" |
-| 0:30–1:30 | Demo Figma MCP: prompt + resultado | "Le pido al agente que extraiga el diseno de mi archivo Figma..." |
-| 1:30–3:00 | Demo Supabase MCP: tablas + RLS | "Ahora le pido que liste las tablas y verifique la seguridad RLS..." |
-| 3:00–4:30 | Demo mobile-mcp: registro + CRUD | "Con mobile-mcp el agente usa la app en el emulador como si fuera un usuario..." |
-| 4:30–5:00 | App corriendo con datos reales | "La app Cuida lo que te mueve en accion — mantenimiento de vehiculos con IA" |
-
----
-
-## 10. Plantilla analisis de arquitectura (Word)
-
-### 1. Descripcion del sistema
-App movil para registro y seguimiento de mantenimiento de vehiculos (autos, motos, bicicletas, scooters). Tecnologias: Expo SDK 57, React Native 0.86, TypeScript, Supabase (PostgreSQL + Auth + RLS), Tailwind CSS v4 via Uniwind.
-
-### 2. Diagrama de arquitectura
-Capas: Presentacion (Expo Router + componentes) → Logica (hooks + services) → Datos (Supabase BaaS).
-
-### 3. Patrones de diseno identificados
-| Patron | Implementacion |
-|---|---|
-| Singleton | `src/lib/supabase.ts` — cliente unico reutilizado en todo el proyecto |
-| Provider / Context | `src/context/AuthProvider.tsx` — estado de sesion compartido |
-| Service / Repository | `src/services/vehiculos.service.ts` y `mantenimiento.service.ts` |
-| Custom Hooks | `src/hooks/useVehiculos.ts` y `useMantenimiento.ts` |
-| Protected Routes | Grupos `(auth)` y `(app)` en Expo Router |
-
-### 4. Seguridad
-- Row Level Security activo en ambas tablas de Supabase
-- Solo clave publishable expuesta en la app (nunca service_role)
-- Politicas RLS: cada usuario solo ve y modifica sus propios datos
-- Cascada de eliminacion: borrar vehiculo elimina sus mantenimientos
-
-### 5. Uso de los 3 servidores MCP
-| MCP | Rol en el proyecto | Herramienta demostrada |
-|---|---|---|
-| Figma | Extraccion de diseno (colores, estructura) | get_design_context |
-| Supabase | Gestion de base de datos por prompt | list_tables, get_advisors |
-| mobile-mcp | Pruebas automatizadas en emulador Android | list_devices, tap, type, screenshot |
+El primer uso puede solicitar enlazar el repositorio a un proyecto EAS y definir el identificador Android. La generación del perfil está configurada, pero un APK solo se considera generado cuando el build remoto termina correctamente.

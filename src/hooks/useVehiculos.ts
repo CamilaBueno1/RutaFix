@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import { useFocusEffect } from 'expo-router';
 import {
   listarVehiculos,
   crearVehiculo,
@@ -27,9 +28,11 @@ export function useVehiculos() {
     }
   }, []);
 
-  useEffect(() => {
-    cargarVehiculos();
-  }, [cargarVehiculos]);
+  useFocusEffect(
+    useCallback(() => {
+      void cargarVehiculos();
+    }, [cargarVehiculos])
+  );
 
   const agregar = async (v: Omit<NuevoVehiculo, 'user_id'>) => {
     const creado = await crearVehiculo(v);

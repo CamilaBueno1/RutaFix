@@ -1,3 +1,5 @@
+import { diasHastaFechaISO } from '@/utils/fecha';
+
 export type TipoEstadoServicio = 'al_dia' | 'proximo' | 'vencido' | 'sin_registro';
 
 export interface ResultadoEstadoServicio {
@@ -16,37 +18,34 @@ export interface ResultadoEstadoServicio {
  * - Al día: en cualquier otro caso.
  */
 export function obtenerEstadoServicio(
-  kmActual: number,
+  kmActual: number | null,
   proximoKm?: number | null,
   proximaFecha?: string | null
 ): ResultadoEstadoServicio {
-  if (!proximoKm && !proximaFecha) {
+  const tieneProximoKm = proximoKm !== null && proximoKm !== undefined;
+  const tieneProximaFecha = Boolean(proximaFecha);
+  const distanciaDisponible = typeof kmActual === 'number' && Number.isFinite(kmActual);
+
+  if (!tieneProximoKm && !tieneProximaFecha) {
     return {
       estado: 'al_dia',
       etiqueta: 'Al día',
-      colorTexto: '#10B981',
-      colorFondo: '#D1FAE5',
-      claseBadge: 'bg-emerald-100 text-emerald-700 border-emerald-300',
+      colorTexto: '#3D5442',
+      colorFondo: '#EAF0EB',
+      claseBadge: 'bg-[#EAF0EB] text-[#3D5442] border-[#C2C8C0]',
       motivo: 'Sin mantenimiento pendiente programado',
     };
   }
-
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
 
   let fechaVencida = false;
   let fechaProxima = false;
   let diasDiferencia: number | null = null;
 
   if (proximaFecha) {
-    const fechaLimite = new Date(proximaFecha);
-    fechaLimite.setHours(0, 0, 0, 0);
-    const diferenciaMs = fechaLimite.getTime() - hoy.getTime();
-    diasDiferencia = Math.ceil(diferenciaMs / (1000 * 60 * 60 * 24));
-
-    if (diasDiferencia < 0) {
+    diasDiferencia = diasHastaFechaISO(proximaFecha);
+    if (diasDiferencia !== null && diasDiferencia < 0) {
       fechaVencida = true;
-    } else if (diasDiferencia <= 15) {
+    } else if (diasDiferencia !== null && diasDiferencia <= 15) {
       fechaProxima = true;
     }
   }
@@ -55,7 +54,13 @@ export function obtenerEstadoServicio(
   let kmProximo = false;
   let kmDiferencia: number | null = null;
 
-  if (typeof proximoKm === 'number' && proximoKm > 0) {
+  if (
+    kmActual !== null &&
+    Number.isFinite(kmActual) &&
+    typeof proximoKm === 'number' &&
+    Number.isFinite(proximoKm) &&
+    proximoKm >= 0
+  ) {
     kmDiferencia = proximoKm - kmActual;
     if (kmDiferencia <= 0) {
       kmVencido = true;
@@ -76,9 +81,9 @@ export function obtenerEstadoServicio(
     return {
       estado: 'vencido',
       etiqueta: 'Vencido',
-      colorTexto: '#EF4444',
-      colorFondo: '#FEE2E2',
-      claseBadge: 'bg-red-100 text-red-700 border-red-300',
+      colorTexto: '#984629',
+      colorFondo: '#F7EDE8',
+      claseBadge: 'bg-ruta-clay-soft text-ruta-clay-dark border-ruta-clay/30',
       motivo: motivo.trim(),
     };
   }
@@ -95,10 +100,21 @@ export function obtenerEstadoServicio(
     return {
       estado: 'proximo',
       etiqueta: 'Próximo',
-      colorTexto: '#F59E0B',
-      colorFondo: '#FEF3C7',
-      claseBadge: 'bg-amber-100 text-amber-800 border-amber-300',
+      colorTexto: '#984629',
+      colorFondo: '#F7EDE8',
+      claseBadge: 'bg-ruta-clay-soft text-ruta-clay-dark border-ruta-clay/30',
       motivo: motivo.trim(),
+    };
+  }
+
+  if (tieneProximoKm && !distanciaDisponible) {
+    return {
+      estado: 'sin_registro',
+      etiqueta: 'Distancia sin registrar',
+      colorTexto: '#686E69',
+      colorFondo: '#EFECE4',
+      claseBadge: 'border-ruta-line bg-ruta-inset text-ruta-muted',
+      motivo: 'Registra la distancia para calcular el próximo servicio por kilómetros.',
     };
   }
 
@@ -106,9 +122,9 @@ export function obtenerEstadoServicio(
   return {
     estado: 'al_dia',
     etiqueta: 'Al día',
-    colorTexto: '#10B981',
-    colorFondo: '#D1FAE5',
-    claseBadge: 'bg-emerald-100 text-emerald-700 border-emerald-300',
+    colorTexto: '#3D5442',
+    colorFondo: '#EAF0EB',
+    claseBadge: 'bg-[#EAF0EB] text-[#3D5442] border-[#C2C8C0]',
     motivo: 'Mantenimiento al día',
   };
 }

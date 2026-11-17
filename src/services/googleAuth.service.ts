@@ -28,6 +28,12 @@ export async function iniciarSesionConGoogle(): Promise<void> {
   const { params, errorCode } = QueryParams.getQueryParams(result.url);
   if (errorCode) throw new Error(errorCode);
 
+  if (params.code) {
+    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(params.code);
+    if (exchangeError) throw exchangeError;
+    return;
+  }
+
   const { access_token, refresh_token } = params;
   if (!access_token || !refresh_token) {
     throw new Error('Google no devolvió los tokens de autenticación esperados.');

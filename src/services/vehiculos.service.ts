@@ -43,7 +43,7 @@ export async function obtenerVehiculoPorId(id: string): Promise<Vehiculo | null>
  * Registra un nuevo vehículo con validación de kilometraje no negativo.
  */
 export async function crearVehiculo(vehiculo: Omit<NuevoVehiculo, 'user_id'>): Promise<Vehiculo> {
-  if ((vehiculo.current_km ?? 0) < 0) {
+  if (vehiculo.current_km != null && vehiculo.current_km < 0) {
     throw new Error('El kilometraje no puede ser negativo.');
   }
 
@@ -69,7 +69,7 @@ export async function crearVehiculo(vehiculo: Omit<NuevoVehiculo, 'user_id'>): P
  * Actualiza los datos de un vehículo existente.
  */
 export async function actualizarVehiculo(id: string, cambios: ActualizarVehiculo): Promise<Vehiculo> {
-  if (cambios.current_km !== undefined && cambios.current_km < 0) {
+  if (cambios.current_km != null && cambios.current_km < 0) {
     throw new Error('El kilometraje no puede ser negativo.');
   }
 

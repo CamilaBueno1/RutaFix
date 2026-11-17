@@ -4,11 +4,14 @@ import { createClient } from '@supabase/supabase-js';
 import { AppState, Platform } from 'react-native';
 import type { Database } from '@/types/database.types';
 
-const urlSupabase = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-const claveAnonSupabase =
-  process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-  process.env.EXPO_PUBLIC_SUPABASE_KEY ||
-  'placeholder_anon_key';
+const urlSupabase = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const clavePublicableSupabase = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+if (!urlSupabase || !clavePublicableSupabase) {
+  throw new Error(
+    'Configura EXPO_PUBLIC_SUPABASE_URL y EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY en .env.'
+  );
+}
 
 /**
  * Cliente único de Supabase (Patrón Singleton)
@@ -16,10 +19,11 @@ const claveAnonSupabase =
  */
 export const supabase = createClient<Database>(
   urlSupabase,
-  claveAnonSupabase,
+  clavePublicableSupabase,
   {
     auth: {
       ...(Platform.OS !== 'web' ? { storage: AsyncStorage } : {}),
+      flowType: 'pkce',
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: false,

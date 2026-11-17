@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
+import { Texto as Text } from '@/components/ui/Texto';
 import type { ResultadoEstadoServicio } from '@/utils/estadoServicio';
 
 interface PropiedadesInsigniaEstado {
@@ -29,7 +30,7 @@ export function InsigniaEstado({ resultado, mostrarMotivo = false }: Propiedades
         </Text>
       </View>
       {mostrarMotivo && resultado.motivo ? (
-        <Text className="text-xs text-slate-500 mt-1.5 font-medium">
+        <Text className="mt-1.5 text-xs font-medium text-[#77786F]">
           {resultado.motivo}
         </Text>
       ) : null}
