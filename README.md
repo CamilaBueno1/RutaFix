@@ -133,3 +133,5 @@ Consulta la [guía de demostración MCP](./docs/GUIA_DEMO_MCP_RITA_FIX.md) para 
 Revisa la carpeta [`docs/mcp-evidence/`](./docs/mcp-evidence/README.md) para consultar la bitácora de evidencias MCP.
 
 La guía de uso y configuración de cada servidor está en [`docs/uso-de-los-mcp.md`](./docs/uso-de-los-mcp.md).
+#   D e b e r - - - R u t a F i x  
+ 
