@@ -38,9 +38,15 @@ Confirma que la respuesta indica el proyecto correcto antes de continuar.
 
 Expo MCP ofrece búsqueda y lectura de documentación oficial de Expo y herramientas de Expo Services. Conectarlo no inicia Metro ni ejecuta la aplicación.
 
-Prueba rápida para el video (solo lectura):
+Prueba de conexión (solo lectura):
 
 > Usa Expo MCP para encontrar la documentación oficial de Expo Router para Expo SDK 57. Revisa `src/hooks/useVehiculos.ts` y explica brevemente cuándo se vuelve a cargar la lista de vehículos. Comparte el enlace oficial más relevante. No inicies Expo ni cambies archivos.
+
+### Demostración integrada para el video
+
+Este ejemplo verifica información útil del diseño, la base de datos y la navegación usando los tres MCP:
+
+> Para una revisión rápida de RutaFix, usa Stitch, Supabase y Expo MCP. Stitch: recupera la pantalla existente “RutaFix - Registrar Mantenimiento (Paleta Oficial)” y resume sus campos principales. Supabase: muestra las columnas de `public.vehicles` y `public.maintenance_records`, y cuenta sus filas con consultas `SELECT COUNT(*)`; no consultes `auth.users` ni muestres datos personales. Expo: encuentra la documentación oficial de Expo Router compatible con Expo SDK 57 y comparte el enlace. Termina con cinco puntos que comparen qué campos del diseño existen en la base de datos y qué no. Distingue lo comprobado de lo inferido. Solo lectura: no escribas en Supabase ni Stitch, no modifiques archivos ni ejecutes Expo.
 
 ## Diagnóstico
 
