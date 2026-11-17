@@ -38,6 +38,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "f4204e7b-616f-422e-ab4c-ed3c2490f63a"
+      }
+    },
+    "owner": "camilabuenor"
   }
 }
